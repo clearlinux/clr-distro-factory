@@ -1,0 +1,11 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Watcher') {
+            steps {
+                sh 'watcher/watcher.sh'
+            }
+        }
+    }
+}

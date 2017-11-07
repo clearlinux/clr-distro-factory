@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Prologue') {
+            steps {
+                sh 'release/tag.sh'
+            }
+        }
+        stage('Create Update Stream') {
+            steps {
+                sh 'release/mixer.sh'
+            }
+        }
+        stage('Create Images') {
+            steps {
+                sh 'release/ister.sh'
+            }
+        }
+        stage('Stage') {
+            steps {
+                sh 'release/stage.sh'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Release Pipeline OUT - ${env.BUILD_ID} on ${env.JENKINS_URL}"
+        }
+    }
+}
