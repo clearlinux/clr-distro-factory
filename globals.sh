@@ -13,16 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
-
-SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
-
-. ${SCRIPT_DIR}/../globals.sh
-
-CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest 2> /dev/null)
-if [ -z $CLR_LATEST ]; then
-    echo "Error: Failed to fetch Clear Linux latest version."
-    exit 1
-fi
-
-echo "Clear Linux version: $CLR_LATEST"
+CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
