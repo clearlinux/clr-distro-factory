@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+koji() {
+    command koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} $@
+}
+
 test_dep () {
     command -v $1 > /dev/null 2>&1 || { echo >&2 "Error: command '$1' not found"; exit 1; }
 }
