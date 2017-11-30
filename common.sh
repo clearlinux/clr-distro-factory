@@ -13,8 +13,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-koji() {
-    command koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} $@
+koji_cmd() {
+    local koji_command="koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} ${@}"
+
+    # Downloads fail sometime, add a retry
+    local max_retries=10
+    local retry=${max_retries}
+    local done="false"
+    while [ "${done}" = false ]; do
+        if [ ${retry} -lt ${max_retries} ]; then
+            echo "Retrying command; ${retry} attempts left ..."
+        fi
+
+        retry=$(( retry - 1 ))
+        {
+            KOJI_CMD_RESULTS=$(${koji_command})
+            done=true
+        } || {
+            if [ $retry -le 0 ]; then
+                exit 99
+            fi
+        }
+    done
 }
 
 test_dep () {
