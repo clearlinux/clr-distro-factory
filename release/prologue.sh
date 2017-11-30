@@ -16,3 +16,4 @@
 set -e
 
 mkdir -p ${BUILD_DIR}
+mkdir -p ${STAGING_DIR}

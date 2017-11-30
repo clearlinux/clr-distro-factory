@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         BUILD_DIR = "/var/work/${JOB_NAME}"
+        STAGING_DIR = "/var/www/html/${JOB_NAME}"
     }
 
     stages {
