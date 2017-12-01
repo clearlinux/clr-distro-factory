@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Print extra information to stdout
+VERBOSE=${VERBOSE:-false}
+
+# Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 DSTREAM_DL_URL=${DSTREAM_DL_URL:?"Downstream URL is required"}
 KOJI_URL=${KOJI_URL:?"Downstream Koji URL is required"}
