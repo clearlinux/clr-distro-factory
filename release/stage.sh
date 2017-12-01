@@ -13,4 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "Hello Stage"
+# MIX_VERSION:  Version number for this new Mix being generated
+
+set -e
+
+SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
+
+. ${SCRIPT_DIR}/../common.sh
+
+test_dir ${STAGING_DIR}
+test_dir ${BUILD_DIR}
+
+pushd ${BUILD_DIR} > /dev/null
+
+echo "Staging Mix ..."
+/usr/bin/mkdir -p ${STAGING_DIR}/update/
+/usr/bin/cp -a update/www/* ${STAGING_DIR}/update/
+
+echo "Setting latest version ..."
+/usr/bin/cp -a update/latest ${STAGING_DIR}/
+
+echo "Staging release image ..."
+/usr/bin/cp -a releases ${STAGING_DIR}/
+
+echo "Fixing permissions and ownership ..."
+sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
+
+popd > /dev/null
