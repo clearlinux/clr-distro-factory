@@ -82,8 +82,6 @@ get_latest_versions() {
             exit 2
         }
 
-        MIX_VERSION=${MIX_VERSION:-$(( ${UPSTREAM_BASE_VERSION} * 1000 + ${MIX_INCREMENT}))}
-
         UPSTREAM_PREV_VERSION=${MIX_LATEST_VERSION::-3}
 
         { # Get the Upstream version and format for the previous mix
@@ -97,10 +95,22 @@ get_latest_versions() {
             echo "Upstream previous ClearLinux Version: ${UPSTREAM_PREV_VERSION}:${UPSTREAM_PREV_FORMAT}"
         fi
 
+        MIX_VERSION=${MIX_VERSION:-$(( ${UPSTREAM_BASE_VERSION} * 1000 + ${MIX_INCREMENT}))}
+
         if [ ${MIX_VERSION} -le ${MIX_LATEST_VERSION} ]; then
-            echo "New Mix Version ${MIX_VERSION} is than or equal to Latest Mix Version ${MIX_LATEST_VERSION}!"
-            echo "Abort..."
-            exit 0
+            MIX_VERSION=$(( ${MIX_LATEST_VERSION} + ${MIX_INCREMENT} ))
+
+            if [ "${MIX_VERSION:(-3)}" -eq "000" ]; then
+                echo "Invalid Mix version: no more versions available for mix for this upstream!"
+                echo "Abort..."
+                exit 1
+            fi
+
+            if [ ${MIX_VERSION} -le ${MIX_LATEST_VERSION} ]; then
+                echo "Invalid Mix version ${MIX_VERSION} with the latest being ${MIX_LATEST_VERSION}!"
+                echo "Abort..."
+                exit 1
+            fi
         fi
     fi
 
