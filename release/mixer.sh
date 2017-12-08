@@ -33,7 +33,7 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
-BUILDER_CONF=${BUILDER_CONF:-"${SCRIPT_DIR}/builder.conf"}
+BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 MIX_INCREMENT=${MIX_INCREMENT:-10}
 MIX_BUNDLES_URL=${MIX_BUNDLES_URL:?"Downstream Bundles Repository is required"}
 
@@ -236,6 +236,13 @@ generate_mix() {
 main() {
     test_dir ${BUILD_DIR}
     pushd ${BUILD_DIR} > /dev/null
+
+    # TODO: Remove if https://github.com/clearlinux/mixer-tools/pull/29
+    # and https://github.com/clearlinux/bundle-chroot-builder/pull/12 are
+    # merged, or remove the TODO if they are not.
+
+    # Apply the BUILD_DIR path into the configuration file.
+    sed "s#\${BUILD_DIR}#${BUILD_DIR}#" ${SCRIPT_DIR}/builder.conf.in > ${BUILD_DIR}/builder.conf
 
     get_latest_versions
     generate_mix

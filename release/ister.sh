@@ -20,7 +20,7 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
-BUILDER_CONF=${BUILDER_CONF:-"${SCRIPT_DIR}/builder.conf"}
+BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${SCRIPT_DIR}/release-image-config.json"}
 
 update_image_template() {
