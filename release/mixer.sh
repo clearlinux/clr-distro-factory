@@ -47,7 +47,20 @@ INC_BUNDLES=${INC_BUNDLES:-"bootloader,kernel-native,os-core,os-core-update"}
 KOJI_TOPURL=${KOJI_TOPURL:?"Downstream Koji Top URL is required"}
 KOJI_RPM_TAG=${KOJI_RPM_TAG:-"dist-ds"} # Koji tag of RPMs to use
 
+echo "=== MIXER STEP STARTING"
+echo
+echo "BUILDER_CONF=${BUILDER_CONF}"
+echo "MIX_INCREMENT=${MIX_INCREMENT}"
+echo "MIX_BUNDLES_URL=${MIX_BUNDLES_URL}"
+echo "UPSTREAM_URL=${UPSTREAM_URL}"
+echo "INC_BUNDLES=${INC_BUNDLES}"
+echo "KOJI_TOPURL=${KOJI_TOPURL}"
+echo "KOJI_RPM_TAG=${KOJI_RPM_TAG}"
+
 get_latest_versions() {
+    echo
+    echo "=== GET LATEST VERSIONS"
+
     {
         # Should we allow this to be set via an Environment variable???
         MIX_LATEST_VERSION=${MIX_LATEST_VERSION:-$(curl --silent --fail file://${STAGING_DIR}/latest)}
@@ -64,7 +77,6 @@ get_latest_versions() {
     }
 
     if [ -z ${MIX_LATEST_VERSION} ]; then
-        echo "INFO: No latest Mix, building the first mix"
         MIX_VERSION=${MIX_VERSION:-$(( ${UPSTREAM_BASE_VERSION} * 1000 + ${MIX_INCREMENT}))}
 
         MIX_LATEST_VERSION=${MIX_VERSION}
@@ -73,8 +85,6 @@ get_latest_versions() {
         UPSTREAM_PREV_VERSION=${UPSTREAM_BASE_VERSION}
         UPSTREAM_PREV_FORMAT=${UPSTREAM_BASE_FORMAT}
     else
-        echo "INFO: Latest mix is ${MIX_LATEST_VERSION}, building"
-
         { # Get Latest Mix version's format (we already have the version)
             MIX_LATEST_FORMAT=$(curl --silent --fail file://${STAGING_DIR}/update/${MIX_LATEST_VERSION}/format)
         } || { # Failed
@@ -90,10 +100,6 @@ get_latest_versions() {
             echo "Failed to get Upstream previous ClearLinux version information!"
             exit 2
         }
-
-        if [ ${VERBOSE} ]; then
-            echo "Upstream previous ClearLinux Version: ${UPSTREAM_PREV_VERSION}:${UPSTREAM_PREV_FORMAT}"
-        fi
 
         MIX_VERSION=${MIX_VERSION:-$(( ${UPSTREAM_BASE_VERSION} * 1000 + ${MIX_INCREMENT}))}
 
@@ -114,16 +120,18 @@ get_latest_versions() {
         fi
     fi
 
-    if [ ${VERBOSE} ]; then
-        echo "Mix version to create: ${MIX_VERSION}"
-        echo "Mix Latest Version: ${MIX_LATEST_VERSION}:${MIX_LATEST_FORMAT}"
-        echo "Upstream Version as Base for new Mix: ${UPSTREAM_BASE_VERSION}:${UPSTREAM_BASE_FORMAT}"
+    if [ "${MIX_VERSION}" -eq "${MIX_LATEST_VERSION}" ]; then
+        echo "THIS IS THE FIRST VERSION OF THIS MIX"
+    else
+        echo "LASTEST MIX VERSION:   ${MIX_LATEST_VERSION}:${MIX_LATEST_FORMAT}"
     fi
+    echo     "NEXT MIX VERSION:      ${MIX_VERSION}"
+    echo     "NEXT UPSTREAM VERSION: ${UPSTREAM_BASE_VERSION}:${UPSTREAM_BASE_FORMAT}"
 }
 
 download_bundles() {
     echo ""
-    echo "Downloading Bundles ..."
+    echo "=== DOWNLOADING BUNDLES"
 
     if [ -z ${MIX_DIR} ]; then
         MIX_DIR="mix-bundles"
@@ -158,11 +166,12 @@ download_bundles() {
 }
 
 download_mix_rpms() {
+    echo ""
+    echo "=== DOWNLOADING RPMS"
+
     if [ -z ${RPM_DIR} ]; then
         RPM_DIR="rpms"
     fi
-
-    echo ""
 
     # Create and change to RPM target directory
     /usr/bin/mkdir -p ${RPM_DIR}
@@ -177,10 +186,7 @@ download_mix_rpms() {
     download_rpms=$(echo "${KOJI_CMD_RESULTS}" | awk '{print $1}')
 
     for rpm in ${download_rpms}; do
-        if [ ${VERBOSE} ]; then
-            echo "Downloading RPMs for $rpm ..."
-        fi
-
+        echo "--- ${rpm}"
         koji_cmd download-build --quiet ${rpm} --topurl ${KOJI_TOPURL}
     done
 
@@ -193,6 +199,9 @@ generate_mix() {
 
     download_bundles
     download_mix_rpms # Pull down the RPMs from Downstream Koji
+
+    echo
+    echo "=== GENERATING MIX"
 
     # Create the local repo directory
     LOCAL_REPO=$(grep '^REPODIR' ${BUILDER_CONF} | awk -F= '{print $NF}')
@@ -225,12 +234,18 @@ main() {
     test_dir ${BUILD_DIR}
     pushd ${BUILD_DIR} > /dev/null
 
+    echo
+    echo "=== GENERATE BUILDER.CONF FILE"
+
     # TODO: Remove if https://github.com/clearlinux/mixer-tools/pull/29
     # and https://github.com/clearlinux/bundle-chroot-builder/pull/12 are
     # merged, or remove the TODO if they are not.
 
     # Apply the BUILD_DIR path into the configuration file.
     sed "s#\${BUILD_DIR}#${BUILD_DIR}#" ${SCRIPT_DIR}/builder.conf.in > ${BUILD_DIR}/builder.conf
+
+    echo "${BUILD_DIR}/builder.conf contents:"
+    cat ${BUILD_DIR}/builder.conf
 
     get_latest_versions
     generate_mix
