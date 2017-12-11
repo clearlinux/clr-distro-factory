@@ -63,14 +63,14 @@ get_latest_versions() {
 
     {
         # Should we allow this to be set via an Environment variable???
-        MIX_LATEST_VERSION=${MIX_LATEST_VERSION:-$(curl --silent --fail file://${STAGING_DIR}/latest)}
+        MIX_LATEST_VERSION=${MIX_LATEST_VERSION:-$(curl file://${STAGING_DIR}/latest)}
     } || {
         MIX_LATEST_VERSION=""
     }
 
     {
-        UPSTREAM_BASE_VERSION=${UPSTREAM_BASE_VERSION:-$(curl --silent --fail ${UPSTREAM_URL}../latest)} &&
-        UPSTREAM_BASE_FORMAT=$(curl --silent --fail ${UPSTREAM_URL}${UPSTREAM_BASE_VERSION}/format)
+        UPSTREAM_BASE_VERSION=${UPSTREAM_BASE_VERSION:-$(curl ${UPSTREAM_URL}../latest)} &&
+        UPSTREAM_BASE_FORMAT=$(curl ${UPSTREAM_URL}${UPSTREAM_BASE_VERSION}/format)
     } || {
         echo "Failed to get ClearLinux upstream latest version information!"
         exit 4
@@ -86,7 +86,7 @@ get_latest_versions() {
         UPSTREAM_PREV_FORMAT=${UPSTREAM_BASE_FORMAT}
     else
         { # Get Latest Mix version's format (we already have the version)
-            MIX_LATEST_FORMAT=$(curl --silent --fail file://${STAGING_DIR}/update/${MIX_LATEST_VERSION}/format)
+            MIX_LATEST_FORMAT=$(curl file://${STAGING_DIR}/update/${MIX_LATEST_VERSION}/format)
         } || { # Failed
             echo "Failed to get latest mix format!"
             exit 2
@@ -95,7 +95,7 @@ get_latest_versions() {
         UPSTREAM_PREV_VERSION=${MIX_LATEST_VERSION::-3}
 
         { # Get the Upstream version and format for the previous mix
-            UPSTREAM_PREV_FORMAT=$(curl --silent --fail ${UPSTREAM_URL}${UPSTREAM_PREV_VERSION}/format)
+            UPSTREAM_PREV_FORMAT=$(curl ${UPSTREAM_URL}${UPSTREAM_PREV_VERSION}/format)
         } || { # Failed
             echo "Failed to get Upstream previous ClearLinux version information!"
             exit 2

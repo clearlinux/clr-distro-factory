@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+curl() {
+    command curl --silent --fail $@
+}
+
 koji_cmd() {
     local koji_command="koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} ${@}"
 

@@ -18,14 +18,16 @@ set -e
 SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ${SCRIPT_DIR}/../globals.sh
+. ${SCRIPT_DIR}/../common.sh
 
-CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest 2> /dev/null)
-if [ -z $CLR_LATEST ]; then
+# Check if we are on track with Upstream ClearLinux
+CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest)
+if [[ -z $CLR_LATEST ]]; then
     echo "Error: Failed to fetch Clear Linux latest version."
     exit 1
 fi
 
-DS_LATEST=$(curl ${DSTREAM_DL_URL}/latest 2> /dev/null)
+DS_LATEST=$(curl ${DSTREAM_DL_URL}/latest)
 if [ -z $DS_LATEST ]; then
     echo "Error: Failed to fetch Downstream Clear Linux latest version."
     exit 1
