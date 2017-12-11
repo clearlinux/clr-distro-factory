@@ -19,4 +19,6 @@ VERBOSE=${VERBOSE:-false}
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 DSTREAM_DL_URL=${DSTREAM_DL_URL:?"Downstream URL is required"}
+KOJI_TAG=${KOJI_TAG:-"dist-ds"} # Koji tag of RPMs to use
 KOJI_URL=${KOJI_URL:?"Downstream Koji URL is required"}
+PKG_LIST_FILE="custom-pkg-list"

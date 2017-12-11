@@ -45,7 +45,6 @@ INC_BUNDLES=${INC_BUNDLES:-"bootloader,kernel-native,os-core,os-core-update"}
 
 # URL of RPM download site
 KOJI_TOPURL=${KOJI_TOPURL:?"Downstream Koji Top URL is required"}
-KOJI_RPM_TAG=${KOJI_RPM_TAG:-"dist-ds"} # Koji tag of RPMs to use
 
 echo "=== MIXER STEP STARTING"
 echo
@@ -55,7 +54,7 @@ echo "MIX_BUNDLES_URL=${MIX_BUNDLES_URL}"
 echo "UPSTREAM_URL=${UPSTREAM_URL}"
 echo "INC_BUNDLES=${INC_BUNDLES}"
 echo "KOJI_TOPURL=${KOJI_TOPURL}"
-echo "KOJI_RPM_TAG=${KOJI_RPM_TAG}"
+echo "KOJI_TAG=${KOJI_TAG}"
 
 get_latest_versions() {
     echo
@@ -167,6 +166,15 @@ download_bundles() {
 
 download_mix_rpms() {
     echo ""
+    echo "=== FETCHING CUSTOM PKG LIST"
+    koji_cmd list-tagged --latest --quiet ${KOJI_TAG}
+    if [[ -z "${KOJI_CMD_RESULTS}" ]]; then
+        echo "Failed to get Mix packages!"
+        exit 2
+    fi
+    echo "${KOJI_CMD_RESULTS}" | awk '{print $1}' > ${PKG_LIST_FILE}
+
+    echo ""
     echo "=== DOWNLOADING RPMS"
 
     if [ -z ${RPM_DIR} ]; then
@@ -177,15 +185,7 @@ download_mix_rpms() {
     /usr/bin/mkdir -p ${RPM_DIR}
     pushd ${RPM_DIR} > /dev/null
 
-    koji_cmd list-tagged --latest --quiet ${KOJI_RPM_TAG}
-    if [ -z "${KOJI_CMD_RESULTS}" ]; then
-        echo "Failed to get Mix packages!"
-        exit 2
-    fi
-
-    download_rpms=$(echo "${KOJI_CMD_RESULTS}" | awk '{print $1}')
-
-    for rpm in ${download_rpms}; do
+    for rpm in $(cat ${BUILD_DIR}/${PKG_LIST_FILE}); do
         echo "--- ${rpm}"
         koji_cmd download-build --quiet ${rpm} --topurl ${KOJI_TOPURL}
     done
@@ -228,6 +228,7 @@ generate_mix() {
     fi
 
     echo -n ${MIX_VERSION} | sudo -E tee update/latest > /dev/null
+    sudo -E /usr/bin/cp -a ${PKG_LIST_FILE} update/www/${MIX_VERSION}/
 }
 
 main() {
