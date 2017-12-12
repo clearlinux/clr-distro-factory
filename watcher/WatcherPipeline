@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'master' }
+    agent { label 'clr-builders' }
 
     stages {
         stage('Watcher') {
