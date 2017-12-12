@@ -43,7 +43,30 @@ echo "Downstream version:  $DS_UP_VERSION $DS_DOWN_VERSION"
 echo "Clear Linux version: $CLR_LATEST"
 
 if (($DS_UP_VERSION < $CLR_LATEST)); then
-    echo "It's Release Time!"
-else
-    echo "No Release for you!"
+    echo "Upstream has a new release. It's Release Time!"
+    exit 0
 fi
+
+# Check if is there new custom content to be released
+TMP_PREV_LIST=$(mktemp)
+TMP_CURR_LIST=$(mktemp)
+PKG_LIST_PATH=${DSTREAM_DL_URL}/update/${DS_LATEST}/${PKG_LIST_FILE}
+
+if ! curl ${PKG_LIST_PATH} -o ${TMP_PREV_LIST}; then
+    echo "Wrn: Failed to fetch Downstream PREVIOUS Package List. Assuming empty."
+fi
+
+if koji_cmd list-tagged --latest --quiet ${KOJI_TAG}; then
+    echo "${KOJI_CMD_RESULTS}" | awk '{print $1}' > ${TMP_CURR_LIST}
+else
+    echo "Wrn: Failed to fetch Downstream Package List. Assuming empty."
+fi
+
+if ! diff ${TMP_CURR_LIST} ${TMP_PREV_LIST}; then
+    echo "New custom content. It's Release Time!"
+else
+    echo "Nothing to see here."
+fi
+
+rm ${TMP_CURR_LIST}
+rm ${TMP_PREV_LIST}
