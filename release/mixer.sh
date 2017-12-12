@@ -129,6 +129,9 @@ get_latest_versions() {
 }
 
 download_bundles() {
+    local clear_ver="$1"
+    local mix_ver="$2"
+
     echo ""
     echo "=== DOWNLOADING BUNDLES"
 
@@ -145,15 +148,15 @@ download_bundles() {
     /usr/bin/git clone --quiet ${MIX_BUNDLES_URL} ${MIX_DIR}
 
     # Check the Bundle definitions for this base version of ClearLinux
-    sudo -E mixer init-mix -config ${BUILDER_CONF} -clearver ${UPSTREAM_BASE_VERSION} -mixver ${MIX_VERSION}
+    sudo -E mixer init-mix -config ${BUILDER_CONF} -clearver ${clear_ver} -mixver ${mix_ver}
 
     if [ -z ${INC_BUNDLES} ]; then
         # We want our mix always based on everything from ClearLinux
-        sudo -E /usr/bin/cp -a clr-bundles/clr-bundles-${UPSTREAM_BASE_VERSION}/bundles/* ${MIX_DIR}/
+        sudo -E /usr/bin/cp -a clr-bundles/clr-bundles-${clear_ver}/bundles/* ${MIX_DIR}/
     else
         # Only use the requested bundles
         # Need the eval to expand the variable and then have bash filename expansion work
-        eval sudo -E /usr/bin/cp -a clr-bundles/clr-bundles-${UPSTREAM_BASE_VERSION}/bundles/{${INC_BUNDLES}} ${MIX_DIR}/
+        eval sudo -E /usr/bin/cp -a clr-bundles/clr-bundles-${clear_ver}/bundles/{${INC_BUNDLES}} ${MIX_DIR}/
     fi
 
     sudo -E /usr/bin/rm -rf clr-bundles
@@ -192,9 +195,10 @@ download_mix_rpms() {
 }
 
 generate_mix() {
-    # Can we override the format in the build file?
+    local clear_ver="$1"
+    local mix_ver="$2"
 
-    download_bundles
+    download_bundles "${clear_ver}" "${mix_ver}"
     download_mix_rpms # Pull down the RPMs from Downstream Koji
 
     echo
@@ -218,14 +222,14 @@ generate_mix() {
     echo "Building update ..."
     sudo -E mixer build-update -config ${BUILDER_CONF}
 
-    if [ ${MIX_LATEST_VERSION} -lt ${MIX_VERSION} ]; then
+    if [ "${MIX_LATEST_VERSION}" -lt "${mix_ver}" ]; then
         echo ""
         echo "Generating upgrade packs ..."
-        sudo -E mixer-pack-maker.sh --to ${MIX_VERSION} --from ${MIX_LATEST_VERSION} -S ${BUILD_DIR}/update
+        sudo -E mixer-pack-maker.sh --to ${mix_ver} --from ${MIX_LATEST_VERSION} -S ${BUILD_DIR}/update
     fi
 
-    echo -n ${MIX_VERSION} | sudo -E tee update/latest > /dev/null
-    sudo -E /usr/bin/cp -a ${PKG_LIST_FILE} update/www/${MIX_VERSION}/
+    echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
+    sudo -E /usr/bin/cp -a ${PKG_LIST_FILE} update/www/${mix_ver}/
 }
 
 main() {
@@ -246,7 +250,7 @@ main() {
     cat ${BUILD_DIR}/builder.conf
 
     get_latest_versions
-    generate_mix
+    generate_mix "${UPSTREAM_BASE_VERSION}" "${MIX_VERSION}"
 
     popd > /dev/null
 }
