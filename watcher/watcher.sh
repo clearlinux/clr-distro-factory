@@ -15,6 +15,11 @@
 
 set -e
 
+# return codes:
+# 0 = We are up-to-date. Pipeline Success.
+# 1 = A new release is needed. Pipeline Unstable.
+# > 1 = Errors. Pipeline Failure.
+
 SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ${SCRIPT_DIR}/../globals.sh
@@ -24,16 +29,16 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest)
 if [[ -z $CLR_LATEST ]]; then
     echo "Error: Failed to fetch Clear Linux latest version."
-    exit 1
+    exit 2
 fi
 
 DS_LATEST=$(curl ${DSTREAM_DL_URL}/latest)
 if [ -z $DS_LATEST ]; then
     echo "Error: Failed to fetch Downstream Clear Linux latest version."
-    exit 1
+    exit 2
 elif ((${#DS_LATEST} < 4)); then
     echo "Error: Downstream Clear Linux version number seems corrupted."
-    exit 1
+    exit 2
 fi
 
 DS_UP_VERSION=${DS_LATEST: : -3}
@@ -44,10 +49,11 @@ echo "Clear Linux version: $CLR_LATEST"
 
 if (($DS_UP_VERSION < $CLR_LATEST)); then
     echo "Upstream has a new release. It's Release Time!"
-    exit 0
+    exit 1
 fi
 
 # Check if is there new custom content to be released
+ret=0
 TMP_PREV_LIST=$(mktemp)
 TMP_CURR_LIST=$(mktemp)
 PKG_LIST_PATH=${DSTREAM_DL_URL}/update/${DS_LATEST}/${PKG_LIST_FILE}
@@ -64,9 +70,11 @@ fi
 
 if ! diff ${TMP_CURR_LIST} ${TMP_PREV_LIST}; then
     echo "New custom content. It's Release Time!"
+    ret=1
 else
     echo "Nothing to see here."
 fi
 
 rm ${TMP_CURR_LIST}
 rm ${TMP_PREV_LIST}
+exit ${ret}

@@ -4,8 +4,21 @@ pipeline {
     stages {
         stage('Watcher') {
             steps {
-                sh 'watcher/watcher.sh'
+                script {
+                   def ret = sh script: 'watcher/watcher.sh', returnStatus: true
+                   if (ret == 1) {
+                       currentBuild.result = 'UNSTABLE'
+                   } else if (ret > 1) {
+                       currentBuild.result = 'FAILURE'
+                   }
+                }
             }
+        }
+    }
+
+    post {
+        unstable {
+            build 'downstream-release'
         }
     }
 }
