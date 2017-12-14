@@ -26,17 +26,17 @@ test_dir ${BUILD_DIR}
 
 pushd ${BUILD_DIR} > /dev/null
 
-echo "Staging Mix ..."
+echo "=== STAGING MIX"
 /usr/bin/mkdir -p ${STAGING_DIR}/update/
 /usr/bin/cp -a update/www/* ${STAGING_DIR}/update/
 
-echo "Setting latest version ..."
+echo "=== SETTING LATEST VERSION"
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
 
-echo "Staging release image ..."
+echo "=== STAGING RELEASE IMAGE"
 /usr/bin/cp -a releases ${STAGING_DIR}/
 
-echo "Fixing permissions and ownership ..."
+echo "=== FIXING PERMISSIONS AND OWNERSHIP"
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
 
 popd > /dev/null
