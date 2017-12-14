@@ -62,8 +62,8 @@ if ! curl ${PKG_LIST_PATH} -o ${TMP_PREV_LIST}; then
     echo "Wrn: Failed to fetch Downstream PREVIOUS Package List. Assuming empty."
 fi
 
-if koji_cmd list-tagged --latest --quiet ${KOJI_TAG}; then
-    echo "${KOJI_CMD_RESULTS}" | awk '{print $1}' > ${TMP_CURR_LIST}
+if result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG}); then
+    echo "${result}" | awk '{print $1}' > ${TMP_CURR_LIST}
 else
     echo "Wrn: Failed to fetch Downstream Package List. Assuming empty."
 fi

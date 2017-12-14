@@ -18,27 +18,18 @@ curl() {
 }
 
 koji_cmd() {
-    local koji_command="koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} ${@}"
-
-    # Downloads fail sometime, add a retry
-    local max_retries=10
-    local retry=${max_retries}
-    local done="false"
-    while [ "${done}" = false ]; do
-        if [ ${retry} -lt ${max_retries} ]; then
-            echo "Retrying command; ${retry} attempts left ..."
+    # Downloads fail sometime, try harder!
+    local result=""
+    for (( i=0; $i < 10; i++ )); do
+        result=$(koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} ${@} 2> /dev/null)
+        if [[ $? -eq 0 ]]; then
+            [[ -n ${result} ]] && echo "${result}"
+            return 0
         fi
-
-        retry=$(( retry - 1 ))
-        {
-            KOJI_CMD_RESULTS=$(${koji_command})
-            done=true
-        } || {
-            if [ $retry -le 0 ]; then
-                exit 99
-            fi
-        }
     done
+
+    [[ -n ${result} ]] && echo "${result}"
+    return 1
 }
 
 test_dep () {
