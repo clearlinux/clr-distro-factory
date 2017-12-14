@@ -242,8 +242,8 @@ main() {
     # and https://github.com/clearlinux/bundle-chroot-builder/pull/12 are
     # merged, or remove the TODO if they are not.
 
-    # Apply the BUILD_DIR path into the configuration file.
-    sed "s#\${BUILD_DIR}#${BUILD_DIR}#" ${SCRIPT_DIR}/builder.conf.in > ${BUILD_DIR}/builder.conf
+    # Write the configuration file based on the template.
+    sed -e "s#\${BUILD_DIR}#${BUILD_DIR}#" -e "s#\${DSTREAM_DL_URL}#${DSTREAM_DL_URL}#" ${SCRIPT_DIR}/builder.conf.in > ${BUILD_DIR}/builder.conf
 
     echo "${BUILD_DIR}/builder.conf contents:"
     cat ${BUILD_DIR}/builder.conf

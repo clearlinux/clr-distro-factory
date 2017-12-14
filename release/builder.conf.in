@@ -9,8 +9,8 @@ REPODIR=${BUILD_DIR}/local
 
 [swupd]
 BUNDLE=os-core-update
-CONTENTURL=https://cdn.download.clearlinux.org/update/
-VERSIONURL=https://download.clearlinux.org/update/
+CONTENTURL=${DSTREAM_DL_URL}/update
+VERSIONURL=${DSTREAM_DL_URL}/update
 FORMAT=1
 
 [Server]
