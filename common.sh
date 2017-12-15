@@ -20,16 +20,17 @@ curl() {
 koji_cmd() {
     # Downloads fail sometime, try harder!
     local result=""
+    local ret=1
     for (( i=0; $i < 10; i++ )); do
-        result=$(koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} ${@} 2> /dev/null)
-        if [[ $? -eq 0 ]]; then
-            [[ -n ${result} ]] && echo "${result}"
-            return 0
-        fi
+        result=$(koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} ${@} 2> /dev/null) \
+            || continue
+
+        ret=0
+        break
     done
 
     [[ -n ${result} ]] && echo "${result}"
-    return 1
+    return ${ret}
 }
 
 test_dep () {
