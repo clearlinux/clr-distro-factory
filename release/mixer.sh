@@ -167,11 +167,8 @@ download_bundles() {
 download_mix_rpms() {
     echo ""
     echo "=== FETCHING CUSTOM PKG LIST"
-    local result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG})
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to get Mix packages!"
-        exit 2
-    fi
+    local result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG}) \
+        || { echo "Failed to get Mix packages!"; exit 2; }
     echo "${result}" | awk '{print $1}' > ${PKG_LIST_FILE}
 
     echo ""
