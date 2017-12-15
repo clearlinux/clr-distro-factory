@@ -1,8 +1,10 @@
 STEPS := $(patsubst %.sh,%,$(notdir $(wildcard $(CURDIR)/release/*.sh)))
 
-BUILD_DIR = $(CURDIR)/tmp/build
-STAGING_DIR = $(CURDIR)/tmp/release
-DSTREAM_DL_URL = http://$(shell hostname -f):8000/update
+HOSTNAME := $(shell hostname -f)
+
+BUILD_DIR ?= $(CURDIR)/tmp/build
+STAGING_DIR ?= $(CURDIR)/tmp/release
+DSTREAM_DL_URL ?= http://${HOSTNAME}:8000/update
 
 all:
 	@echo "use 'make release' to run all steps'"
@@ -27,5 +29,4 @@ release: prologue mixer ister stage
 
 .PHONY: serve
 serve: ${STAGING_DIR}
-	mkdir -p $(CURDIR)/tmp/{build,release}
-	cd $(CURDIR)/tmp/release; python -mSimpleHTTPServer
+	cd ${STAGING_DIR}; python -mSimpleHTTPServer
