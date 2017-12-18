@@ -197,9 +197,10 @@ download_mix_rpms() {
 generate_mix() {
     local clear_ver="$1"
     local mix_ver="$2"
+    local bump_format=$(( "$3" + 0 ))
+    local bump_ver=$(( "$4" + 0 ))
 
     download_bundles "${clear_ver}" "${mix_ver}"
-    download_mix_rpms # Pull down the RPMs from Downstream Koji
 
     echo
     echo "=== GENERATING MIX"
@@ -217,6 +218,15 @@ generate_mix() {
     echo ""
     echo "Creating chroots ..."
     sudo -E mixer build-chroots -config ${BUILDER_CONF}
+
+    if [[ "${bump_format}" -gt 0 ]]; then
+        echo ""
+        echo "*** BUMP: Forcing the image version ahead to ${bump_ver}:${bump_format} ..."
+        echo -n ${bump_format} | sudo -E \
+            tee "$BUILD_DIR/update/image/${mix_ver}/os-core-update/usr/share/defaults/swupd/format" > /dev/null
+        echo -n ${bump_ver} | sudo -E \
+            tee "$BUILD_DIR/update/image/${mix_ver}/os-core/usr/share/clear/version" > /dev/null
+    fi
 
     echo ""
     echo "Building update ..."
@@ -250,6 +260,62 @@ main() {
     cat ${BUILD_DIR}/builder.conf
 
     get_latest_versions
+
+    download_mix_rpms # Pull down the RPMs from Downstream Koji
+
+    if [ "${UPSTREAM_BASE_FORMAT}" -gt "${UPSTREAM_PREV_FORMAT}" ]; then
+        echo "=== NEED TO BUMP FORMAT"
+    fi
+
+    local format_bumps=$(( ${UPSTREAM_BASE_FORMAT} - ${UPSTREAM_PREV_FORMAT} ))
+    for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
+        local up_prev_format=$(( ${UPSTREAM_PREV_FORMAT} + ${bump}))
+        local up_prev_latest_ver
+        local up_next_first_ver
+
+        # First, we may need to generate a Mix based on the latest upstream
+        # release for the previous upstream Format.
+        { # Get the latest version for Upstream format
+            up_prev_latest_ver=$(curl --silent --fail ${UPSTREAM_URL}version/format${up_prev_format}/latest)
+        } || { # Failed
+            echo "Failed to get latest version for Upstream format ${up_prev_format}!"
+            exit 2
+        }
+
+        local step_mix_ver
+        if [ "${UPSTREAM_PREV_VERSION}" -lt "${up_prev_latest_ver}" ]; then
+            step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} ))
+        else
+            # We some built a Mix based on the last version of a format, without bumping
+            step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} + ${MIX_INCREMENT} ))
+        fi
+
+        local next_mix_format=$(( ${MIX_LATEST_FORMAT} + 1 ))
+        { # Get the first version for Upstream next format
+            local up_next_format=$(( ${up_prev_format} + 1 ))
+            up_next_first_ver=$(curl --silent --fail ${UPSTREAM_URL}version/format${up_next_format}/first)
+        } || { # Failed
+            echo "Failed to get first version for Upstream format ${up_next_format}!"
+            exit 2
+        }
+        local next_mix_ver=$(( ${up_next_first_ver} * 1000 + ${MIX_INCREMENT} ))
+
+        # Generate a Mix based on the FIRST release for the new Format
+        echo
+        echo "=== GENERATING INTERMEDIATE MIX ${step_mix_ver}"
+        generate_mix "${up_prev_latest_ver}" "${step_mix_ver}" ${next_mix_format} ${next_mix_ver}
+
+        # Bump the Mix Format
+        # Modify the BUILDER_CONF with the new format
+        # TODO: Need to check-in to git
+        sed -r 's/^(FORMAT=)([0-9]+)(.*)/echo "\1$((\2+1))\3"/ge' ${BUILDER_CONF} > ${BUILDER_CONF}.new
+        mv ${BUILDER_CONF}.new ${BUILDER_CONF}
+
+        echo
+        echo "=== GENERATING INTERMEDIATE MIX ${next_mix_ver}"
+        generate_mix "${up_next_first_ver}" "${next_mix_ver}"
+    done
+
     generate_mix "${UPSTREAM_BASE_VERSION}" "${MIX_VERSION}"
 
     popd > /dev/null
