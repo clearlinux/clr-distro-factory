@@ -246,18 +246,23 @@ main() {
     test_dir ${BUILD_DIR}
     pushd ${BUILD_DIR} > /dev/null
 
-    echo
-    echo "=== GENERATE BUILDER.CONF FILE"
-
     # TODO: Remove if https://github.com/clearlinux/mixer-tools/pull/29
     # and https://github.com/clearlinux/bundle-chroot-builder/pull/12 are
     # merged, or remove the TODO if they are not.
 
-    # Write the configuration file based on the template.
-    sed -e "s#\${BUILD_DIR}#${BUILD_DIR}#" -e "s#\${DSTREAM_DL_URL}#${DSTREAM_DL_URL}#" ${SCRIPT_DIR}/builder.conf.in > ${BUILD_DIR}/builder.conf
+    if [ -f ${BUILDER_CONF} ]; then
+        echo
+        echo "=== USING EXISTING BUILDER.CONF FILE"
+    else
+        echo
+        echo "=== GENERATE BUILDER.CONF FILE"
 
-    echo "${BUILD_DIR}/builder.conf contents:"
-    cat ${BUILD_DIR}/builder.conf
+        # Write the configuration file based on the template.
+        sed -e "s#\${BUILD_DIR}#${BUILD_DIR}#" -e "s#\${DSTREAM_DL_URL}#${DSTREAM_DL_URL}#" ${SCRIPT_DIR}/builder.conf.in > ${BUILDER_CONF}
+    fi
+
+    echo "${BUILDER_CONF} contents:"
+    cat ${BUILDER_CONF}
 
     get_latest_versions
 
