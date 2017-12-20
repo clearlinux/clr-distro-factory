@@ -181,6 +181,11 @@ download_mix_rpms() {
         RPM_DIR="rpms"
     fi
 
+    # Remove any existing RPM directory as it may contain
+    # RPMs which are no longer tagged from a previous download
+    if [ -d ${RPM_DIR} ]; then
+        /usr/bin/rm -rf ${RPM_DIR}
+    fi
     # Create and change to RPM target directory
     /usr/bin/mkdir -p ${RPM_DIR}
     pushd ${RPM_DIR} > /dev/null
