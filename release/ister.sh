@@ -52,9 +52,9 @@ main() {
     # Requires mixer 3.1.2 (https://github.com/mdhorn/mixer-tools.git integration)
     sudo -E mixer build-image -config ${BUILDER_CONF} -template ${IMAGE_TEMPLATE} -format ${CURRENT_FORMAT}
 
-    mixversion=$(cat .mixversion)
+    mix_version=$(cat .mixversion)
     mkdir -p releases
-    sudo -E /usr/bin/mv release.img releases/release-${mixversion}.img
+    sudo -E /usr/bin/mv release.img releases/release-${mix_version}.img
 
     popd > /dev/null
 }
