@@ -23,31 +23,15 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${SCRIPT_DIR}/release-image-config.json"}
 
-update_image_template() {
-    bundles=""
-    for bundle in $(/usr/bin/ls mix-bundles); do
-        if [ ! -z "${bundles}" ]; then
-            bundles+=", "
-        fi
-        bundles+="\"${bundle}\""
-    done
-    bundles="\"Bundles\": [${bundles}]"
-
-    cat ${IMAGE_TEMPLATE} | sed "s/\"Bundles\":.*/${bundles}/" > ${IMAGE_TEMPLATE}.new
-    /usr/bin/mv ${IMAGE_TEMPLATE} ${IMAGE_TEMPLATE}.$(date +%Y%m%d.%H%M%S)
-    /usr/bin/mv ${IMAGE_TEMPLATE}.new ${IMAGE_TEMPLATE}
-}
-
 main() {
     test_dir ${BUILD_DIR}
     pushd ${BUILD_DIR} > /dev/null
 
-    echo ""
-    echo "Generating image template ..."
-    update_image_template
+    echo "${IMAGE_TEMPLATE} contents:"
+    cat ${IMAGE_TEMPLATE}
 
-    echo ""
-    echo "Generating release image  ..."
+    echo
+    echo "=== GENERATING RELEASE IMAGE"
     CURRENT_FORMAT=$(grep '^FORMAT' ${BUILDER_CONF} | awk -F= '{print $NF}')
     # Requires mixer 3.1.2 (https://github.com/mdhorn/mixer-tools.git integration)
     sudo -E mixer build-image -config ${BUILDER_CONF} -template ${IMAGE_TEMPLATE} -format ${CURRENT_FORMAT}
