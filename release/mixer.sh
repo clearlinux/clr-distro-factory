@@ -100,7 +100,7 @@ get_latest_versions() {
             exit 2
         }
 
-        if [ ${UPSTREAM_BASE_VERSION} -le ${UPSTREAM_PREV_VERSION} ]; then
+        if [ ${UPSTREAM_BASE_VERSION} -lt ${UPSTREAM_PREV_VERSION} ]; then
             echo "Invalid Mix version: Specified Upstream Base less than the previous Upstream!"
             echo "Abort..."
             exit 1
