@@ -28,7 +28,7 @@ pushd ${BUILD_DIR} > /dev/null
 
 echo "=== STAGING MIX"
 /usr/bin/mkdir -p ${STAGING_DIR}/update/
-/usr/bin/cp -a update/www/* ${STAGING_DIR}/update/
+/usr/bin/rsync -ah update/www/ ${STAGING_DIR}/update/
 
 echo "=== SETTING LATEST VERSION"
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
