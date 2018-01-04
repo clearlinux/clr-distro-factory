@@ -38,7 +38,7 @@ main() {
 
     mix_version=$(cat .mixversion)
     mkdir -p releases
-    sudo -E /usr/bin/mv release.img releases/release-${mix_version}.img
+    sudo -E /usr/bin/mv release.img releases/clearmix-${mix_version}-kvm.img
 
     popd > /dev/null
 }

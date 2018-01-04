@@ -33,8 +33,15 @@ echo "=== STAGING MIX"
 echo "=== SETTING LATEST VERSION"
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
 
-echo "=== STAGING RELEASE IMAGE"
-/usr/bin/cp -a releases ${STAGING_DIR}/
+mix_version=$(cat .mixversion)
+image="releases/clearmix-${mix_version}-kvm.img"
+if [ -f "${image}" ]; then
+    echo "=== STAGING RELEASE IMAGE ${image}"
+    /usr/bin/xz -3 --stdout "${image}" > "${STAGING_DIR}/${image}.xz"
+else
+    echo "MISSING release image ${image}!"
+    exit 2
+fi
 
 echo "=== FIXING PERMISSIONS AND OWNERSHIP"
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
