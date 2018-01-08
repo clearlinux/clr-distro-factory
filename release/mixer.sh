@@ -153,19 +153,30 @@ download_bundles() {
     # Clone the Mix Bundles repo
     /usr/bin/git clone --quiet ${MIX_BUNDLES_URL} ${MIX_DIR}
 
-    # Check the Bundle definitions for this base version of ClearLinux
-    sudo -E mixer init-mix -config ${BUILDER_CONF} -clearver ${clear_ver} -mixver ${mix_ver}
-
-    if [ -z ${INC_BUNDLES} ]; then
-        # We want our mix always based on everything from ClearLinux
-        sudo -E /usr/bin/cp -a clr-bundles/clr-bundles-${clear_ver}/bundles/* ${MIX_DIR}/
+    # Ensure the Upstream and Mix versions are set
+    if [ -f "${BUILDER_CONF}/.mixversion" ]; then
+        # Update the Clear and Mix versions
+        echo -n ${clear_ver} | sudo -E \
+            tee "$BUILD_DIR/.clearversion" > /dev/null
+        echo -n ${mix_ver} | sudo -E \
+            tee "$BUILD_DIR/.mixversion" > /dev/null
     else
-        # Only use the requested bundles
-        # Need the eval to expand the variable and then have bash filename expansion work
-        eval sudo -E /usr/bin/cp -a clr-bundles/clr-bundles-${clear_ver}/bundles/{${INC_BUNDLES}} ${MIX_DIR}/
+        # We have no .mixversion, so we need to call init-mix for the first (and only) time
+        sudo -E mixer init-mix -config ${BUILDER_CONF} -clearver ${clear_ver} -mixver ${mix_ver}
     fi
 
+    # Add the upstream Bundle definitions for this base version of ClearLinux
+    if [ -z ${INC_BUNDLES} ]; then
+        # We want our mix always based on everything from ClearLinux
+        sudo -E mixer add-bundles -config ${BUILDER_CONF} -all
+    else
+        # Only use the requested bundles
+        sudo -E mixer add-bundles -config ${BUILDER_CONF} -bundles "${INC_BUNDLES}"
+    fi
+
+    # Clean up
     sudo -E /usr/bin/rm -rf clr-bundles
+
     # Ensure our custom bundles replace any upstream files
     pushd ${MIX_DIR} > /dev/null
     /usr/bin/git reset --quiet --hard HEAD
