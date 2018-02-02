@@ -14,3 +14,4 @@
 # limitations under the License.
 
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
+DSTREAM_DL_URL=${DSTREAM_DL_URL:?"Downstream URL is required"}

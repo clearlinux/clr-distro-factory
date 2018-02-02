@@ -25,4 +25,23 @@ if [ -z $CLR_LATEST ]; then
     exit 1
 fi
 
+DS_LATEST=$(curl ${DSTREAM_DL_URL}/latest 2> /dev/null)
+if [ -z $DS_LATEST ]; then
+    echo "Error: Failed to fetch Downstream Clear Linux latest version."
+    exit 1
+elif ((${#DS_LATEST} < 4)); then
+    echo "Error: Downstream Clear Linux version number seems corrupted."
+    exit 1
+fi
+
+DS_UP_VERSION=${DS_LATEST: : -3}
+DS_DOWN_VERSION=${DS_LATEST: -3}
+
+echo "Downstream version:  $DS_UP_VERSION $DS_DOWN_VERSION"
 echo "Clear Linux version: $CLR_LATEST"
+
+if (($DS_UP_VERSION < $CLR_LATEST)); then
+    echo "It's Release Time!"
+else
+    echo "No Release for you!"
+fi
