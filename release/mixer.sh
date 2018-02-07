@@ -41,7 +41,7 @@ UPSTREAM_URL=${UPSTREAM_URL:-"${CLR_PUBLIC_DL_URL}/update/"}
 
 # Comma (no whitespace) separated list of bundles to include
 # Leave zero length string for all ClearLinux bundles (Default mode)
-INC_BUNDLES=${INC_BUNDLES:-"bootloader,kernel-native,os-core,os-core-update"}
+INC_BUNDLES=${INC_BUNDLES-"bootloader,kernel-native,os-core,os-core-update"}
 
 # URL of RPM download site
 KOJI_TOPURL=${KOJI_TOPURL:?"Downstream Koji Top URL is required"}
