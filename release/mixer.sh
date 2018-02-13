@@ -265,7 +265,7 @@ generate_mix() {
 }
 
 main() {
-    test_dir ${BUILD_DIR}
+    assert_dir ${BUILD_DIR}
     pushd ${BUILD_DIR} > /dev/null
 
     # TODO: Remove if https://github.com/clearlinux/mixer-tools/pull/29

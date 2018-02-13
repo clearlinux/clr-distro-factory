@@ -24,7 +24,7 @@ BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${SCRIPT_DIR}/release-image-config.json"}
 
 main() {
-    test_dir ${BUILD_DIR}
+    assert_dir ${BUILD_DIR}
     pushd ${BUILD_DIR} > /dev/null
 
     echo "${IMAGE_TEMPLATE} contents:"

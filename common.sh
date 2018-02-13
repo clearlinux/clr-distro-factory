@@ -33,11 +33,11 @@ koji_cmd() {
     return ${ret}
 }
 
-test_dep () {
+assert_dep () {
     command -v $1 > /dev/null 2>&1 || { echo >&2 "Error: command '$1' not found"; exit 1; }
 }
 
-test_dir () {
+assert_dir () {
     [ -d $1 ] > /dev/null 2>&1 || { echo >&2 "Error: directory '$1' not found"; exit 1; }
 }
 

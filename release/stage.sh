@@ -21,8 +21,8 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ${SCRIPT_DIR}/../common.sh
 
-test_dir ${STAGING_DIR}
-test_dir ${BUILD_DIR}
+assert_dir ${STAGING_DIR}
+assert_dir ${BUILD_DIR}
 
 pushd ${BUILD_DIR} > /dev/null
 
