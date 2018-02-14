@@ -41,6 +41,10 @@ assert_dir () {
     [ -d $1 ] > /dev/null 2>&1 || { echo >&2 "Error: directory '$1' not found"; exit 1; }
 }
 
+assert_file() {
+    [ -f $1 ] > /dev/null 2>&1 || { echo >&2 "Error: file '$1' not found"; exit 1; }
+}
+
 silentkill () {
     if [ ! -z $2 ]; then
         kill $2 $1 > /dev/null 2>&1 || true
@@ -67,4 +71,19 @@ run_and_log() {
     else
         $cmd > /dev/null 2> /dev/null &
     fi
+}
+
+fetch_config_repo() {
+if [[ ! -d ./config ]]; then
+    local CONFIG_REPO=${CONFIG_REPO:?"CONFIG_REPO cannot be Null/Unset"}
+    echo "    Fetching config repository: ${CONFIG_REPO}"
+    git clone ${CONFIG_REPO} config
+else
+    echo "    'config' found on workspace. Will use it."
+fi
+
+echo -n "    Checking for the required files..."
+assert_file ./config/config.sh
+assert_file ./config/release-image-config.json
+echo "   OK!"
 }

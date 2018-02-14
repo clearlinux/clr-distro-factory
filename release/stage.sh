@@ -21,6 +21,8 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ${SCRIPT_DIR}/../common.sh
 
+. ./config/config.sh
+
 assert_dir ${STAGING_DIR}
 assert_dir ${BUILD_DIR}
 

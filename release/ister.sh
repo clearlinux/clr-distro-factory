@@ -20,6 +20,8 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
+. ./config/config.sh
+
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${SCRIPT_DIR}/release-image-config.json"}
 

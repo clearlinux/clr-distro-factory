@@ -2,8 +2,7 @@ pipeline {
     agent { label 'clr-builders' }
 
     environment {
-        BUILD_DIR = "/var/work/${JOB_NAME}"
-        STAGING_DIR = "/var/www/html/${JOB_NAME}"
+        NAMESPACE = "${JOB_NAME}"
     }
 
     stages {

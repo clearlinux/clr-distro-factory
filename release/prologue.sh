@@ -15,5 +15,15 @@
 
 set -e
 
+SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
+
+. ${SCRIPT_DIR}/../common.sh
+
+echo "=== PROLOGUE"
+fetch_config_repo
+. ./config/config.sh
+
+echo -n "    Sanitizing build environment..."
 mkdir -p ${BUILD_DIR}
 mkdir -p ${STAGING_DIR}
+echo "OK!"

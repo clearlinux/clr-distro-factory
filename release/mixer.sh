@@ -33,18 +33,16 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
+. ./config/config.sh
+
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 MIX_INCREMENT=${MIX_INCREMENT:-10}
-MIX_BUNDLES_URL=${MIX_BUNDLES_URL:?"Downstream Bundles Repository is required"}
 
 UPSTREAM_URL=${UPSTREAM_URL:-"${CLR_PUBLIC_DL_URL}/update/"}
 
 # Comma (no whitespace) separated list of bundles to include
 # Leave zero length string for all ClearLinux bundles (Default mode)
 INC_BUNDLES=${INC_BUNDLES-"bootloader,kernel-native,os-core,os-core-update"}
-
-# URL of RPM download site
-KOJI_TOPURL=${KOJI_TOPURL:?"Downstream Koji Top URL is required"}
 
 echo "=== MIXER STEP STARTING"
 echo

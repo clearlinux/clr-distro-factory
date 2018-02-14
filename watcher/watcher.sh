@@ -25,6 +25,9 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
+fetch_config_repo
+. ./config/config.sh
+
 # Check if we are on track with Upstream ClearLinux
 CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest) || true
 if [[ -z $CLR_LATEST ]]; then
