@@ -23,7 +23,7 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ./config/config.sh
 
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
-IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${SCRIPT_DIR}/release-image-config.json"}
+IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${PWD}/config/release-image-config.json"}
 
 main() {
     assert_dir ${BUILD_DIR}
