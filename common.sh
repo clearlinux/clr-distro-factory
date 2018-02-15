@@ -22,7 +22,7 @@ koji_cmd() {
     local result=""
     local ret=1
     for (( i=0; $i < 10; i++ )); do
-        result=$(koji --user ${KOJIU} --password ${KOJIP} --authtype=password -s ${KOJI_URL} ${@} 2> /dev/null) \
+        result=$(koji ${@} 2> /dev/null) \
             || continue
 
         ret=0
