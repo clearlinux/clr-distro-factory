@@ -18,7 +18,7 @@ pipeline {
 
     post {
         unstable {
-            build 'downstream-release'
+            build "${RELEASE_JOB}"
         }
     }
 }
