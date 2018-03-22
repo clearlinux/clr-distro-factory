@@ -28,6 +28,10 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 fetch_config_repo
 . ./config/config.sh
 
+echo "=== Watcher"
+echo "Upstream Server= ${CLR_PUBLIC_DL_URL}"
+echo "Downstream Server= ${DSTREAM_DL_URL}"
+
 # Check if we are on track with Upstream ClearLinux
 CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest) || true
 if [[ -z $CLR_LATEST ]]; then
@@ -47,8 +51,8 @@ fi
 DS_UP_VERSION=${DS_LATEST: : -3}
 DS_DOWN_VERSION=${DS_LATEST: -3}
 
-echo "Downstream version:  $DS_UP_VERSION $DS_DOWN_VERSION"
 echo "Clear Linux version: $CLR_LATEST"
+echo "Downstream version:  $DS_UP_VERSION $DS_DOWN_VERSION"
 
 if (($DS_UP_VERSION < $CLR_LATEST)); then
     echo "Upstream has a new release. It's Release Time!"
