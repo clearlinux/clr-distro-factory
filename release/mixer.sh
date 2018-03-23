@@ -188,6 +188,7 @@ download_mix_rpms() {
     local result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG}) \
         || { echo "Failed to get Mix packages!"; exit 2; }
     echo "${result}" | awk '{print $1}' > ${PKG_LIST_FILE}
+    cat ${PKG_LIST_FILE}
 
     echo ""
     echo "=== DOWNLOADING RPMS"
