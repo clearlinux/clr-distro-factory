@@ -36,9 +36,9 @@ main() {
     echo "=== GENERATING RELEASE IMAGE"
     CURRENT_FORMAT=$(grep '^FORMAT' ${BUILDER_CONF} | awk -F= '{print $NF}')
     # Requires mixer 3.1.2 (https://github.com/mdhorn/mixer-tools.git integration)
-    sudo -E mixer build-image -config ${BUILDER_CONF} -template ${IMAGE_TEMPLATE} -format ${CURRENT_FORMAT}
+    sudo -E mixer build image --new-swupd --config ${BUILDER_CONF} --template ${IMAGE_TEMPLATE} --format ${CURRENT_FORMAT}
 
-    mix_version=$(cat .mixversion)
+    mix_version=$(cat mixversion)
     mkdir -p releases
     sudo -E /usr/bin/mv release.img releases/clearmix-${mix_version}-kvm.img
 

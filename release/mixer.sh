@@ -42,7 +42,7 @@ UPSTREAM_URL=${UPSTREAM_URL:-"${CLR_PUBLIC_DL_URL}/update/"}
 
 # Comma (no whitespace) separated list of bundles to include
 # Leave zero length string for all ClearLinux bundles (Default mode)
-INC_BUNDLES=${INC_BUNDLES-"bootloader,kernel-native,os-core,os-core-update"}
+INC_BUNDLES=${INC_BUNDLES-"bootloader kernel-native os-core os-core-update"}
 
 echo "=== MIXER STEP STARTING"
 echo
@@ -152,24 +152,24 @@ download_bundles() {
     /usr/bin/git clone --quiet ${MIX_BUNDLES_URL} ${MIX_DIR}
 
     # Ensure the Upstream and Mix versions are set
-    if [ -f "${BUILDER_CONF}/.mixversion" ]; then
+    if [ -f "${BUILDER_CONF}/mixversion" ]; then
         # Update the Clear and Mix versions
         echo -n ${clear_ver} | sudo -E \
-            tee "$BUILD_DIR/.clearversion" > /dev/null
+            tee "$BUILD_DIR/upstreamversion" > /dev/null
         echo -n ${mix_ver} | sudo -E \
-            tee "$BUILD_DIR/.mixversion" > /dev/null
+            tee "$BUILD_DIR/mixversion" > /dev/null
     else
-        # We have no .mixversion, so we need to call init-mix for the first (and only) time
-        sudo -E mixer init-mix -config ${BUILDER_CONF} -clearver ${clear_ver} -mixver ${mix_ver}
+        # We have no mixversion, so we need to call init-mix for the first (and only) time
+        sudo -E mixer init --config ${BUILDER_CONF} --clear-version ${clear_ver} --mix-version ${mix_ver}
     fi
 
     # Add the upstream Bundle definitions for this base version of ClearLinux
-    if [ -z ${INC_BUNDLES} ]; then
+    if [[ -z "${INC_BUNDLES}" ]]; then
         # We want our mix always based on everything from ClearLinux
-        sudo -E mixer add-bundles -config ${BUILDER_CONF} -all
+        sudo -E mixer bundle add --config ${BUILDER_CONF} --all-upstream
     else
         # Only use the requested bundles
-        sudo -E mixer add-bundles -config ${BUILDER_CONF} -bundles "${INC_BUNDLES}"
+        sudo -E mixer bundle add --config ${BUILDER_CONF} ${INC_BUNDLES}
     fi
 
     # Clean up
@@ -211,6 +211,8 @@ download_mix_rpms() {
         koji_cmd download-build --quiet ${rpm} --topurl ${KOJI_TOPURL}
     done
 
+    rm *.src.rpm #FIXME Temporary fix due new mixer
+
     # Change back to previous working directory
     popd > /dev/null
 }
@@ -227,31 +229,31 @@ generate_mix() {
     echo "=== GENERATING MIX"
 
     # Create the local repo directory
-    LOCAL_REPO=$(grep '^REPODIR' ${BUILDER_CONF} | awk -F= '{print $NF}')
+    LOCAL_REPO=$(grep '^LOCAL_REPO_DIR' ${BUILDER_CONF} | awk -F= '{print $NF}')
     # Expand the environment variables
     LOCAL_REPO=$(echo $(eval echo ${LOCAL_REPO}))
     /usr/bin/mkdir -p ${LOCAL_REPO}
 
     echo ""
     echo "Adding RPMs ..."
-    sudo -E mixer add-rpms -config ${BUILDER_CONF}
+    sudo -E mixer add-rpms --config ${BUILDER_CONF}
 
     echo ""
     echo "Creating chroots ..."
-    sudo -E mixer build-chroots -config ${BUILDER_CONF}
+    sudo -E mixer build bundles --new-chroots --config ${BUILDER_CONF}
 
     if [[ "${bump_format}" -gt 0 ]]; then
         echo ""
         echo "*** BUMP: Forcing the image version ahead to ${bump_ver}:${bump_format} ..."
         echo -n ${bump_format} | sudo -E \
-            tee "$BUILD_DIR/update/image/${mix_ver}/os-core-update/usr/share/defaults/swupd/format" > /dev/null
+            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
         echo -n ${bump_ver} | sudo -E \
-            tee "$BUILD_DIR/update/image/${mix_ver}/os-core/usr/share/clear/version" > /dev/null
+            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
     fi
 
     echo ""
     echo "Building update ..."
-    sudo -E mixer build-update -config ${BUILDER_CONF}
+    sudo -E mixer build update --new-swupd --config ${BUILDER_CONF}
 
     if [ "${MIX_LATEST_VERSION}" -lt "${mix_ver}" ]; then
         echo ""

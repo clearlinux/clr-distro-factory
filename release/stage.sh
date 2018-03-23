@@ -36,7 +36,7 @@ echo "=== SETTING LATEST VERSION"
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
 
 /usr/bin/mkdir -p ${STAGING_DIR}/releases/
-mix_version=$(cat .mixversion)
+mix_version=$(cat mixversion)
 image="releases/clearmix-${mix_version}-kvm.img"
 if [ -f "${image}" ]; then
     echo "=== STAGING RELEASE IMAGE ${image}"
