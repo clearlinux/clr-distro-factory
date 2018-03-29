@@ -124,12 +124,13 @@ get_latest_versions() {
     fi
 
     if [ "${MIX_VERSION}" -eq "${MIX_LATEST_VERSION}" ]; then
-        echo "THIS IS THE FIRST VERSION OF THIS MIX"
+        echo "This is the first version of this mix!"
     else
-        echo "LASTEST MIX VERSION:   ${MIX_LATEST_VERSION}:${MIX_LATEST_FORMAT}"
+        echo "Latest Downstream Version: ${MIX_LATEST_VERSION}:${MIX_LATEST_FORMAT}"
+        echo "Based on Upstream Version: ${UPSTREAM_PREV_VERSION}:${UPSTREAM_PREV_FORMAT}"
     fi
-    echo     "NEXT MIX VERSION:      ${MIX_VERSION}"
-    echo     "NEXT UPSTREAM VERSION: ${UPSTREAM_BASE_VERSION}:${UPSTREAM_BASE_FORMAT}"
+    echo     "Latest Upstream Version:   ${UPSTREAM_BASE_VERSION}:${UPSTREAM_BASE_FORMAT}"
+    echo     "Next Downstream Version:   ${MIX_VERSION}"
 }
 
 download_bundles() {
