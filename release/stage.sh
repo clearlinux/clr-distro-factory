@@ -37,7 +37,7 @@ echo "=== SETTING LATEST VERSION"
 
 /usr/bin/mkdir -p ${STAGING_DIR}/releases/
 mix_version=$(cat mixversion)
-image="releases/clearmix-${mix_version}-kvm.img"
+image="releases/${DSTREAM_NAME}-${mix_version}-kvm.img"
 if [ -f "${image}" ]; then
     echo "=== STAGING RELEASE IMAGE ${image}"
     /usr/bin/xz -3 --stdout "${image}" > "${STAGING_DIR}/${image}.xz"

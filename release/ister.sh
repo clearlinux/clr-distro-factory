@@ -45,7 +45,7 @@ main() {
 
     mix_version=$(cat mixversion)
     mkdir -p releases
-    sudo -E /usr/bin/mv release.img releases/clearmix-${mix_version}-kvm.img
+    sudo -E /usr/bin/mv release.img releases/${DSTREAM_NAME}-${mix_version}-kvm.img
 
     popd > /dev/null
 }
