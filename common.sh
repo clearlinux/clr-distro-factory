@@ -75,9 +75,10 @@ run_and_log() {
 
 fetch_config_repo() {
 if [[ ! -d ./config ]]; then
-    local CONFIG_REPO=${CONFIG_REPO:?"CONFIG_REPO cannot be Null/Unset"}
-    echo "    Fetching config repository: ${CONFIG_REPO}"
-    git clone --quiet ${CONFIG_REPO} config
+    local REPO_HOST=${CONFIG_REPO_HOST:?"CONFIG_REPO_HOST cannot be Null/Unset"}
+    local REPO_NAME=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
+    echo "    Fetching config repository: ${REPO_HOST}:${REPO_NAME}"
+    git clone --quiet ${REPO_HOST}${REPO_NAME} config
 else
     echo "    'config' found on workspace. Will use it."
 fi
