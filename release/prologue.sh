@@ -23,7 +23,14 @@ echo "=== PROLOGUE"
 fetch_config_repo
 . ./config/config.sh
 
+echo "    Namespace  = ${NAMESPACE}"
+echo "    Downstream = ${DSTREAM_NAME}"
+echo "    Build dir  = ${BUILD_DIR}"
+echo "    Stage dir  = ${STAGING_DIR}"
+echo ""
+
 echo -n "    Sanitizing build environment..."
 mkdir -p ${BUILD_DIR}
 mkdir -p ${STAGING_DIR}
 echo "OK!"
+echo "==="
