@@ -34,9 +34,14 @@ main() {
 
     echo
     echo "=== GENERATING RELEASE IMAGE"
+    local tempdir=$(mktemp -d)
     CURRENT_FORMAT=$(grep '^FORMAT' ${BUILDER_CONF} | awk -F= '{print $NF}')
-    # Requires mixer 3.1.2 (https://github.com/mdhorn/mixer-tools.git integration)
-    sudo -E mixer build image --new-swupd --config ${BUILDER_CONF} --template ${IMAGE_TEMPLATE} --format ${CURRENT_FORMAT}
+
+    sudo -E ister.py -s Swupd_Root.pem -t ${IMAGE_TEMPLATE} \
+        -C file://${PWD}/update/www -V file://${PWD}/update/www \
+        -f ${CURRENT_FORMAT} -l ister.log -S ${tempdir}
+
+    sudo -E rm -rf ${tempdir}
 
     mix_version=$(cat mixversion)
     mkdir -p releases
