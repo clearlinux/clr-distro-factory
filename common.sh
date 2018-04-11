@@ -77,7 +77,7 @@ fetch_config_repo() {
 if [[ ! -d ./config ]]; then
     local CONFIG_REPO=${CONFIG_REPO:?"CONFIG_REPO cannot be Null/Unset"}
     echo "    Fetching config repository: ${CONFIG_REPO}"
-    git clone ${CONFIG_REPO} config
+    git clone --quiet ${CONFIG_REPO} config
 else
     echo "    'config' found on workspace. Will use it."
 fi
