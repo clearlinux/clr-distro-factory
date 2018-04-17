@@ -209,10 +209,8 @@ download_mix_rpms() {
 
     for rpm in $(cat ${BUILD_DIR}/${PKG_LIST_FILE}); do
         echo "--- ${rpm}"
-        koji_cmd download-build --quiet ${rpm} --topurl ${KOJI_TOPURL}
+        koji_cmd download-build -a x86_64 --quiet ${rpm}
     done
-
-    rm *.src.rpm #FIXME Temporary fix due new mixer
 
     # Change back to previous working directory
     popd > /dev/null
