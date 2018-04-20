@@ -239,7 +239,7 @@ generate_mix() {
 
     echo ""
     echo "Creating chroots ..."
-    sudo -E mixer build bundles --new-chroots --config ${BUILDER_CONF}
+    sudo -E mixer build bundles --config ${BUILDER_CONF}
 
     if [[ "${bump_format}" -gt 0 ]]; then
         echo ""
@@ -252,7 +252,7 @@ generate_mix() {
 
     echo ""
     echo "Building update ..."
-    sudo -E mixer build update --new-swupd --config ${BUILDER_CONF}
+    sudo -E mixer build update --config ${BUILDER_CONF}
 
     if [ "${MIX_LATEST_VERSION}" -lt "${mix_ver}" ]; then
         echo ""
@@ -267,10 +267,6 @@ generate_mix() {
 main() {
     assert_dir ${BUILD_DIR}
     pushd ${BUILD_DIR} > /dev/null
-
-    # TODO: Remove if https://github.com/clearlinux/mixer-tools/pull/29
-    # and https://github.com/clearlinux/bundle-chroot-builder/pull/12 are
-    # merged, or remove the TODO if they are not.
 
     if [ -f ${BUILDER_CONF} ]; then
         echo
