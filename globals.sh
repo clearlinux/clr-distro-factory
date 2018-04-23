@@ -19,3 +19,6 @@ VERBOSE=${VERBOSE:-false}
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 PKG_LIST_FILE="custom-pkg-list"
+
+# Variables Cache
+VARS_DIR="${WORK_DIR:-$PWD}/.vars"

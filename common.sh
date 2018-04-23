@@ -88,3 +88,31 @@ fetch_config_repo() {
     assert_file ./config/release-image-config.json
     echo "   OK!"
 }
+
+var_save() {
+    local VARS_DIR=${VARS_DIR:?"VARS_DIR Cannot be Null/Unset"}
+
+    if (( $# != 1 )); then
+        echo "[ERROR] 'var_save' requires a single argument!"
+        return 1
+    fi
+
+    # "unsave"
+    if [[ ! -v ${1} ]]; then
+        rm -f ${VARS_DIR}/${1}
+        return 0
+    fi
+
+    [[ -d ${VARS_DIR} ]] || mkdir -p ${VARS_DIR}
+
+    echo "${!1}" > ${VARS_DIR}/${1}
+}
+
+var_load() {
+    if (( $# != 1 )); then
+        echo "[ERROR] 'var_load' requires a single argument!"
+        return 1
+    fi
+
+    [[ -f ${VARS_DIR}/${1} ]] && declare -g ${1}="$(cat ${VARS_DIR}/${1})" || true
+}
