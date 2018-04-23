@@ -74,17 +74,17 @@ run_and_log() {
 }
 
 fetch_config_repo() {
-if [[ ! -d ./config ]]; then
-    local REPO_HOST=${CONFIG_REPO_HOST:?"CONFIG_REPO_HOST cannot be Null/Unset"}
-    local REPO_NAME=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
-    echo "    Fetching config repository: ${REPO_HOST}:${REPO_NAME}"
-    git clone --quiet ${REPO_HOST}${REPO_NAME} config
-else
-    echo "    'config' found on workspace. Will use it."
-fi
+    if [[ ! -d ./config ]]; then
+        local REPO_HOST=${CONFIG_REPO_HOST:?"CONFIG_REPO_HOST cannot be Null/Unset"}
+        local REPO_NAME=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
+        echo "    Fetching config repository: ${REPO_HOST}:${REPO_NAME}"
+        git clone --quiet ${REPO_HOST}${REPO_NAME} config
+    else
+        echo "    'config' found on workspace. Will use it."
+    fi
 
-echo -n "    Checking for the required files..."
-assert_file ./config/config.sh
-assert_file ./config/release-image-config.json
-echo "   OK!"
+    echo -n "    Checking for the required files..."
+    assert_file ./config/config.sh
+    assert_file ./config/release-image-config.json
+    echo "   OK!"
 }
