@@ -14,17 +14,19 @@
 # limitations under the License.
 
 # MIX_VERSION:  Version number for this new Mix being generated
-
+#
 # MIX_LATEST_VERSION:       Latest, already staged, version of this Mix
 # MIX_LATEST_FORMAT:        Latest, already staged, format  of this Mix
-
+#
 # UPSTREAM_URL:             The Upstream Software Update URL this Mix is based upon
-
+#
 # UPSTREAM_BASE_VERSION:    Version of the upstream to use as base for this Mix
 # UPSTREAM_BASE_FORMAT:     Format  of the upstream to use as base for this Mix
-
+#
 # UPSTREAM_PREV_VERSION:    Version of the upstream used by the Previous Mix
 # UPSTREAM_PREV_FORMAT:     Format  of the upstream used by the Previous Mix
+#
+# CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
 
 set -e
 
@@ -40,17 +42,13 @@ MIX_INCREMENT=${MIX_INCREMENT:-10}
 
 UPSTREAM_URL=${UPSTREAM_URL:-"${CLR_PUBLIC_DL_URL}/update/"}
 
-# Comma (no whitespace) separated list of bundles to include
-# Leave zero length string for all ClearLinux bundles (Default mode)
-INC_BUNDLES=${INC_BUNDLES-"bootloader kernel-native os-core os-core-update"}
-
 echo "=== MIXER STEP STARTING"
 echo
 echo "BUILDER_CONF=${BUILDER_CONF}"
 echo "MIX_INCREMENT=${MIX_INCREMENT}"
 echo "MIX_BUNDLES_URL=${MIX_BUNDLES_URL}"
 echo "UPSTREAM_URL=${UPSTREAM_URL}"
-echo "INC_BUNDLES=${INC_BUNDLES}"
+echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
 echo "KOJI_TOPURL=${KOJI_TOPURL}"
 echo "KOJI_TAG=${KOJI_TAG}"
 
@@ -165,13 +163,7 @@ download_bundles() {
     fi
 
     # Add the upstream Bundle definitions for this base version of ClearLinux
-    if [[ -z "${INC_BUNDLES}" ]]; then
-        # We want our mix always based on everything from ClearLinux
-        sudo -E mixer bundle add --config ${BUILDER_CONF} --all-upstream
-    else
-        # Only use the requested bundles
-        sudo -E mixer bundle add --config ${BUILDER_CONF} ${INC_BUNDLES}
-    fi
+    sudo -E mixer bundle add --config ${BUILDER_CONF} ${CLR_BUNDLES:-"--all-upstream"}
 
     # Clean up
     sudo -E /usr/bin/rm -rf clr-bundles
