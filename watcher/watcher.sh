@@ -40,7 +40,7 @@ if [[ -z $CLR_LATEST ]]; then
 fi
 
 DS_LATEST=$(curl ${DSTREAM_DL_URL}/latest) || true
-if [ -z $DS_LATEST ]; then
+if [[ -z $DS_LATEST ]]; then
     echo "Error: Failed to fetch Downstream Clear Linux latest version."
     exit 2
 elif ((${#DS_LATEST} < 4)); then
