@@ -128,3 +128,41 @@ var_load() {
 
     [[ -f ${VARS_DIR}/${1} ]] && declare -g ${1}="$(cat ${VARS_DIR}/${1})" || true
 }
+
+get_latest_versions() {
+    CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest) || true
+    if [[ -z $CLR_LATEST ]]; then
+        echo "[ERROR] Failed to fetch Clear Linux latest version."
+        exit 2
+    fi
+
+    CLR_FORMAT=$(curl ${CLR_PUBLIC_DL_URL}/update/${CLR_LATEST}/format) || true
+    if [[ -z $CLR_FORMAT ]]; then
+        echo "[ERROR] Failed to fetch Clear Linux latest format."
+        exit 2
+    fi
+
+    DS_LATEST=$(cat ${STAGING_DIR}/latest 2>/dev/null) || true
+    if [[ -z $DS_LATEST ]]; then
+        echo "[INFO] Failed to fetch Downstream latest version. First Mix?"
+        DS_FORMAT=0
+    elif ((${#DS_LATEST} < 4)); then
+        echo "[ERROR] Downstream Clear Linux version number seems corrupted."
+        exit 2
+    else
+        DS_FORMAT=$(cat ${STAGING_DIR}/update/${DS_LATEST}/format 2>/dev/null) || true
+        if [[ -z $DS_FORMAT ]]; then
+            echo "[ERROR] Failed to fetch Downstream latest format."
+            exit 2
+        fi
+
+        DS_UP_VERSION=${DS_LATEST: : -3}
+        DS_DOWN_VERSION=${DS_LATEST: -3}
+
+        DS_UP_FORMAT=$(curl ${CLR_PUBLIC_DL_URL}/update/${DS_UP_VERSION}/format) || true
+        if [[ -z $DS_UP_FORMAT ]]; then
+            echo "[ERROR] Failed to fetch Downstream latest base format."
+            exit 2
+        fi
+    fi
+}

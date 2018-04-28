@@ -25,34 +25,27 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
+echo "=== Watcher"
 fetch_config_repo
 . ./config/config.sh
 
-echo "=== Watcher"
-echo "Upstream Server= ${CLR_PUBLIC_DL_URL}"
-echo "Downstream Server= ${DSTREAM_DL_URL}"
+echo "Upstream Server:"
+echo "    ${CLR_PUBLIC_DL_URL}"
+echo "Downstream Stage:"
+echo "    ${STAGING_DIR}"
+echo
 
 # Check if we are on track with Upstream ClearLinux
-CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest) || true
-if [[ -z $CLR_LATEST ]]; then
-    echo "Error: Failed to fetch Clear Linux latest version."
-    exit 2
-fi
+get_latest_versions
 
-DS_LATEST=$(curl ${DSTREAM_DL_URL}/latest) || true
+echo "Clear Linux version:"
+echo "    $CLR_LATEST"
+echo "Downstream version:"
 if [[ -z $DS_LATEST ]]; then
-    echo "Error: Failed to fetch Downstream Clear Linux latest version."
-    exit 2
-elif ((${#DS_LATEST} < 4)); then
-    echo "Error: Downstream Clear Linux version number seems corrupted."
-    exit 2
+    echo "    First Mix! It's Release Time!"
+    exit 1
 fi
-
-DS_UP_VERSION=${DS_LATEST: : -3}
-DS_DOWN_VERSION=${DS_LATEST: -3}
-
-echo "Clear Linux version: $CLR_LATEST"
-echo "Downstream version:  $DS_UP_VERSION $DS_DOWN_VERSION"
+echo "    $DS_UP_VERSION $DS_DOWN_VERSION"
 
 if (($DS_UP_VERSION < $CLR_LATEST)); then
     echo "Upstream has a new release. It's Release Time!"
@@ -63,7 +56,7 @@ fi
 ret=0
 TMP_PREV_LIST=$(mktemp)
 TMP_CURR_LIST=$(mktemp)
-PKG_LIST_PATH=${DSTREAM_DL_URL}/update/${DS_LATEST}/${PKG_LIST_FILE}
+PKG_LIST_PATH=${STAGING_DIR}/update/${DS_LATEST}/${PKG_LIST_FILE}
 
 if ! curl ${PKG_LIST_PATH} -o ${TMP_PREV_LIST}; then
     echo "Wrn: Failed to fetch Downstream PREVIOUS Package List. Assuming empty."

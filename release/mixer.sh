@@ -13,19 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# MIX_VERSION:  Version number for this new Mix being generated
-#
-# MIX_LATEST_VERSION:       Latest, already staged, version of this Mix
-# MIX_LATEST_FORMAT:        Latest, already staged, format  of this Mix
-#
-# UPSTREAM_URL:             The Upstream Software Update URL this Mix is based upon
-#
-# UPSTREAM_BASE_VERSION:    Version of the upstream to use as base for this Mix
-# UPSTREAM_BASE_FORMAT:     Format  of the upstream to use as base for this Mix
-#
-# UPSTREAM_PREV_VERSION:    Version of the upstream used by the Previous Mix
-# UPSTREAM_PREV_FORMAT:     Format  of the upstream used by the Previous Mix
-#
+# MIX_VERSION: Version number for this new Mix being generated
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
 
 set -e
@@ -37,65 +25,37 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ./config/config.sh
 
+var_load CLR_FORMAT
+var_load CLR_LATEST
+var_load DS_DOWN_VERSION
+var_load DS_FORMAT
+var_load DS_LATEST
+var_load DS_UP_FORMAT
+var_load DS_UP_VERSION
+
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 MIX_INCREMENT=${MIX_INCREMENT:-10}
 
-UPSTREAM_URL=${UPSTREAM_URL:-"${CLR_PUBLIC_DL_URL}/update/"}
+calc_mix_version() {
+    if [ -z ${DS_LATEST} ]; then
+        MIX_VERSION=${MIX_VERSION:-$(( ${CLR_LATEST} * 1000 + ${MIX_INCREMENT}))}
 
-get_latest_versions() {
-    echo
-    echo "=== GET LATEST VERSIONS"
+        DS_LATEST=${MIX_VERSION}
+        DS_FORMAT=0
 
-    {
-        # Should we allow this to be set via an Environment variable???
-        MIX_LATEST_VERSION=${MIX_LATEST_VERSION:-$(curl file://${STAGING_DIR}/latest)}
-    } || {
-        MIX_LATEST_VERSION=""
-    }
-
-    {
-        UPSTREAM_BASE_VERSION=${UPSTREAM_BASE_VERSION:-$(curl ${UPSTREAM_URL}../latest)} &&
-        UPSTREAM_BASE_FORMAT=$(curl ${UPSTREAM_URL}${UPSTREAM_BASE_VERSION}/format)
-    } || {
-        echo "Failed to get ClearLinux upstream latest version information!"
-        exit 4
-    }
-
-    if [ -z ${MIX_LATEST_VERSION} ]; then
-        MIX_VERSION=${MIX_VERSION:-$(( ${UPSTREAM_BASE_VERSION} * 1000 + ${MIX_INCREMENT}))}
-
-        MIX_LATEST_VERSION=${MIX_VERSION}
-        MIX_LATEST_FORMAT=0
-
-        UPSTREAM_PREV_VERSION=${UPSTREAM_BASE_VERSION}
-        UPSTREAM_PREV_FORMAT=${UPSTREAM_BASE_FORMAT}
+        DS_UP_VERSION=${CLR_LATEST}
+        DS_UP_FORMAT=${CLR_FORMAT}
     else
-        { # Get Latest Mix version's format (we already have the version)
-            MIX_LATEST_FORMAT=$(curl file://${STAGING_DIR}/update/${MIX_LATEST_VERSION}/format)
-        } || { # Failed
-            echo "Failed to get latest mix format!"
-            exit 2
-        }
-
-        UPSTREAM_PREV_VERSION=${MIX_LATEST_VERSION::-3}
-
-        { # Get the Upstream version and format for the previous mix
-            UPSTREAM_PREV_FORMAT=$(curl ${UPSTREAM_URL}${UPSTREAM_PREV_VERSION}/format)
-        } || { # Failed
-            echo "Failed to get Upstream previous ClearLinux version information!"
-            exit 2
-        }
-
-        if [ ${UPSTREAM_BASE_VERSION} -lt ${UPSTREAM_PREV_VERSION} ]; then
+        if [ ${CLR_LATEST} -lt ${DS_UP_VERSION} ]; then
             echo "Invalid Mix version: Specified Upstream Base less than the previous Upstream!"
             echo "Abort..."
             exit 1
         fi
 
-        MIX_VERSION=${MIX_VERSION:-$(( ${UPSTREAM_BASE_VERSION} * 1000 + ${MIX_INCREMENT}))}
+        MIX_VERSION=${MIX_VERSION:-$(( ${CLR_LATEST} * 1000 + ${MIX_INCREMENT}))}
 
-        if [ ${MIX_VERSION} -le ${MIX_LATEST_VERSION} ]; then
-            MIX_VERSION=$(( ${MIX_LATEST_VERSION} + ${MIX_INCREMENT} ))
+        if [ ${MIX_VERSION} -le ${DS_LATEST} ]; then
+            MIX_VERSION=$(( ${DS_LATEST} + ${MIX_INCREMENT} ))
 
             if [ "${MIX_VERSION:(-3)}" -eq "000" ]; then
                 echo "Invalid Mix version: no more versions available for mix for this upstream!"
@@ -103,21 +63,14 @@ get_latest_versions() {
                 exit 1
             fi
 
-            if [ ${MIX_VERSION} -le ${MIX_LATEST_VERSION} ]; then
-                echo "Invalid Mix version ${MIX_VERSION} with the latest being ${MIX_LATEST_VERSION}!"
+            if [ ${MIX_VERSION} -le ${DS_LATEST} ]; then
+                echo "Invalid Mix version ${MIX_VERSION} with the latest being ${DS_LATEST}!"
                 echo "Abort..."
                 exit 1
             fi
         fi
     fi
 
-    if [ "${MIX_VERSION}" -eq "${MIX_LATEST_VERSION}" ]; then
-        echo "This is the first version of this mix!"
-    else
-        echo "Latest Downstream Version: ${MIX_LATEST_VERSION}:${MIX_LATEST_FORMAT}"
-        echo "Based on Upstream Version: ${UPSTREAM_PREV_VERSION}:${UPSTREAM_PREV_FORMAT}"
-    fi
-    echo     "Latest Upstream Version:   ${UPSTREAM_BASE_VERSION}:${UPSTREAM_BASE_FORMAT}"
     echo     "Next Downstream Version:   ${MIX_VERSION}"
 }
 
@@ -236,10 +189,10 @@ generate_mix() {
     echo "Building update ..."
     sudo -E mixer build update --config ${BUILDER_CONF}
 
-    if [ "${MIX_LATEST_VERSION}" -lt "${mix_ver}" ]; then
+    if [[ -n "${DS_LATEST}" ]]; then
         echo ""
         echo "Generating upgrade packs ..."
-        sudo -E mixer-pack-maker.sh --to ${mix_ver} --from ${MIX_LATEST_VERSION} -S ${BUILD_DIR}/update
+        sudo -E mixer-pack-maker.sh --to ${mix_ver} --from ${DS_LATEST} -S ${BUILD_DIR}/update
     fi
 
     echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
@@ -254,11 +207,7 @@ echo "=== MIXER STEP STARTING"
 echo
 echo "BUILDER_CONF=${BUILDER_CONF}"
 echo "MIX_INCREMENT=${MIX_INCREMENT}"
-echo "BUNDLES_REPO=${BUNDLES_REPO}"
-echo "UPSTREAM_URL=${UPSTREAM_URL}"
 echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
-echo "KOJI_TOPURL=${KOJI_TOPURL}"
-echo "KOJI_TAG=${KOJI_TAG}"
 
 assert_dir ${BUILD_DIR}
 pushd ${BUILD_DIR} > /dev/null
@@ -277,41 +226,40 @@ fi
 echo "${BUILDER_CONF} contents:"
 cat ${BUILDER_CONF}
 
-get_latest_versions
+calc_mix_version
 
 download_mix_rpms # Pull down the RPMs from Downstream Koji
 
-if [ "${UPSTREAM_BASE_FORMAT}" -gt "${UPSTREAM_PREV_FORMAT}" ]; then
+format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
+if (( ${format_bumps} )); then
     echo "=== NEED TO BUMP FORMAT"
 fi
-
-format_bumps=$(( ${UPSTREAM_BASE_FORMAT} - ${UPSTREAM_PREV_FORMAT} ))
 for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
-    up_prev_format=$(( ${UPSTREAM_PREV_FORMAT} + ${bump}))
+    up_prev_format=$(( ${DS_UP_FORMAT} + ${bump}))
     declare up_prev_latest_ver
     declare up_next_first_ver
 
     # First, we may need to generate a Mix based on the latest upstream
     # release for the previous upstream Format.
     { # Get the latest version for Upstream format
-        up_prev_latest_ver=$(curl --silent --fail ${UPSTREAM_URL}version/format${up_prev_format}/latest)
+        up_prev_latest_ver=$(curl --silent --fail ${CLR_PUBLIC_DL_URL}/update/version/format${up_prev_format}/latest)
     } || { # Failed
         echo "Failed to get latest version for Upstream format ${up_prev_format}!"
         exit 2
     }
 
     declare step_mix_ver
-    if [ "${UPSTREAM_PREV_VERSION}" -lt "${up_prev_latest_ver}" ]; then
+    if [ "${DS_UP_VERSION}" -lt "${up_prev_latest_ver}" ]; then
         step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} ))
     else
         # We some built a Mix based on the last version of a format, without bumping
         step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} + ${MIX_INCREMENT} ))
     fi
 
-    next_mix_format=$(( ${MIX_LATEST_FORMAT} + 1 ))
+    next_mix_format=$(( ${DS_FORMAT} + 1 ))
     { # Get the first version for Upstream next format
         up_next_format=$(( ${up_prev_format} + 1 ))
-        up_next_first_ver=$(curl --silent --fail ${UPSTREAM_URL}version/format${up_next_format}/first)
+        up_next_first_ver=$(curl --silent --fail ${CLR_PUBLIC_DL_URL}/update/version/format${up_next_format}/first)
     } || { # Failed
         echo "Failed to get first version for Upstream format ${up_next_format}!"
         exit 2
@@ -334,6 +282,6 @@ for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
     generate_mix "${up_next_first_ver}" "${next_mix_ver}"
 done
 
-generate_mix "${UPSTREAM_BASE_VERSION}" "${MIX_VERSION}"
+generate_mix "${CLR_LATEST}" "${MIX_VERSION}"
 
 popd > /dev/null

@@ -17,6 +17,7 @@ set -e
 
 SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
+. ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
 cat <<EOL
@@ -39,6 +40,8 @@ Downstream Koji Server:
     ${KOJI_URL}
 Downstream Koji Tag:
     ${KOJI_TAG}
+Upstream URL:
+    ${CLR_PUBLIC_DL_URL}
 
 == Workspace ==
 Namespace:
@@ -53,6 +56,28 @@ Stage dir:
     ${STAGING_DIR}
 
 EOL
+
+echo "== Versions =="
+get_latest_versions
+var_save CLR_FORMAT
+var_save CLR_LATEST
+var_save DS_DOWN_VERSION
+var_save DS_FORMAT
+var_save DS_LATEST
+var_save DS_UP_FORMAT
+var_save DS_UP_VERSION
+
+echo "Latest Upstream version (format):"
+echo "    ${CLR_LATEST} (${CLR_FORMAT})"
+echo "Latest Downstream version (format):"
+if [[ -z ${DS_LATEST} ]]; then
+    echo "    First Mix! (0)"
+else
+    echo "    ${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})"
+    echo "Based on Upstream Version:"
+    echo "    ${DS_UP_VERSION} (${DS_UP_FORMAT})"
+fi
+echo
 
 echo -n "Sanitizing work environment..."
 mkdir -p ${BUILD_DIR}
