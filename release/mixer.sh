@@ -138,7 +138,7 @@ download_bundles() {
     fi
 
     # Clone the Mix Bundles repo
-    /usr/bin/git clone --quiet ${MIX_BUNDLES_URL} ${MIX_DIR}
+    /usr/bin/git clone --quiet ${BUNDLES_REPO} ${MIX_DIR}
 
     # Ensure the Upstream and Mix versions are set
     if [ -f "${BUILDER_CONF}/mixversion" ]; then
@@ -254,7 +254,7 @@ echo "=== MIXER STEP STARTING"
 echo
 echo "BUILDER_CONF=${BUILDER_CONF}"
 echo "MIX_INCREMENT=${MIX_INCREMENT}"
-echo "MIX_BUNDLES_URL=${MIX_BUNDLES_URL}"
+echo "BUNDLES_REPO=${BUNDLES_REPO}"
 echo "UPSTREAM_URL=${UPSTREAM_URL}"
 echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
 echo "KOJI_TOPURL=${KOJI_TOPURL}"

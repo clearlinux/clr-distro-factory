@@ -19,17 +19,42 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ${SCRIPT_DIR}/../common.sh
 
-echo "=== PROLOGUE"
+cat <<EOL
+=== PROLOGUE
+Workflow Repository:
+    $(git remote get-url origin) ($(git rev-parse --short HEAD))
+EOL
 fetch_config_repo
 . ./config/config.sh
 
-echo "    Namespace  = ${NAMESPACE}"
-echo "    Downstream = ${DSTREAM_NAME}"
-echo "    Build dir  = ${BUILD_DIR}"
-echo "    Stage dir  = ${STAGING_DIR}"
-echo ""
+cat <<EOL
+== Configuration ==
+Downstream:
+    ${DSTREAM_NAME}
+Bundles Repository:
+    ${BUNDLES_REPO}
+Downstream Content/Version URL:
+    ${DSTREAM_DL_URL}
+Downstream Koji Server:
+    ${KOJI_URL}
+Downstream Koji Tag:
+    ${KOJI_TAG}
 
-echo -n "    Sanitizing build environment..."
+== Workspace ==
+Namespace:
+    ${NAMESPACE}
+Work dir:
+    ${WORK_DIR}
+Variables dir:
+    ${VARS_DIR}
+Build dir:
+    ${BUILD_DIR}
+Stage dir:
+    ${STAGING_DIR}
+
+EOL
+
+echo -n "Sanitizing work environment..."
 mkdir -p ${BUILD_DIR}
 mkdir -p ${STAGING_DIR}
 echo "OK!"
