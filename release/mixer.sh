@@ -112,16 +112,7 @@ generate_mix() {
     rm -f ./mixbundles
 
     # Ensure the Upstream and Mix versions are set
-    if [ -f "${BUILDER_CONF}/mixversion" ]; then
-        # Update the Clear and Mix versions
-        echo -n ${clear_ver} | sudo -E \
-            tee "$BUILD_DIR/upstreamversion" > /dev/null
-        echo -n ${mix_ver} | sudo -E \
-            tee "$BUILD_DIR/mixversion" > /dev/null
-    else
-        # We have no mixversion, so we need to call init-mix for the first (and only) time
-        sudo -E mixer init --config ${BUILDER_CONF} --clear-version ${clear_ver} --mix-version ${mix_ver}
-    fi
+    sudo -E mixer init --config ${BUILDER_CONF} --clear-version ${clear_ver} --mix-version ${mix_ver}
 
     # Add the upstream Bundle definitions for this base version of ClearLinux
     sudo -E mixer bundle add --config ${BUILDER_CONF} ${CLR_BUNDLES:-"--all-upstream"}
