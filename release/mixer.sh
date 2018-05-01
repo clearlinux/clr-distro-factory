@@ -32,47 +32,11 @@ var_load DS_FORMAT
 var_load DS_LATEST
 var_load DS_UP_FORMAT
 var_load DS_UP_VERSION
+var_load MIX_VERSION
+var_load MIX_UP_VERSION
+var_load MIX_DOWN_VERSION
 
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
-MIX_INCREMENT=${MIX_INCREMENT:-10}
-
-calc_mix_version() {
-    if [ -z ${DS_LATEST} ]; then
-        MIX_VERSION=${MIX_VERSION:-$(( ${CLR_LATEST} * 1000 + ${MIX_INCREMENT}))}
-
-        DS_LATEST=${MIX_VERSION}
-        DS_FORMAT=0
-
-        DS_UP_VERSION=${CLR_LATEST}
-        DS_UP_FORMAT=${CLR_FORMAT}
-    else
-        if [ ${CLR_LATEST} -lt ${DS_UP_VERSION} ]; then
-            echo "Invalid Mix version: Specified Upstream Base less than the previous Upstream!"
-            echo "Abort..."
-            exit 1
-        fi
-
-        MIX_VERSION=${MIX_VERSION:-$(( ${CLR_LATEST} * 1000 + ${MIX_INCREMENT}))}
-
-        if [ ${MIX_VERSION} -le ${DS_LATEST} ]; then
-            MIX_VERSION=$(( ${DS_LATEST} + ${MIX_INCREMENT} ))
-
-            if [ "${MIX_VERSION:(-3)}" -eq "000" ]; then
-                echo "Invalid Mix version: no more versions available for mix for this upstream!"
-                echo "Abort..."
-                exit 1
-            fi
-
-            if [ ${MIX_VERSION} -le ${DS_LATEST} ]; then
-                echo "Invalid Mix version ${MIX_VERSION} with the latest being ${DS_LATEST}!"
-                echo "Abort..."
-                exit 1
-            fi
-        fi
-    fi
-
-    echo     "Next Downstream Version:   ${MIX_VERSION}"
-}
 
 download_bundles() {
     local clear_ver="$1"
@@ -202,8 +166,7 @@ generate_mix() {
 # ==============================================================================
 # MAIN
 # ==============================================================================
-
-echo "=== MIXER STEP STARTING"
+echo "=== STARTING MIXING"
 echo
 echo "BUILDER_CONF=${BUILDER_CONF}"
 echo "MIX_INCREMENT=${MIX_INCREMENT}"
@@ -226,9 +189,13 @@ fi
 echo "${BUILDER_CONF} contents:"
 cat ${BUILDER_CONF}
 
-calc_mix_version
-
 download_mix_rpms # Pull down the RPMs from Downstream Koji
+
+if [[ -z ${DS_LATEST} ]]; then
+    # This is our First Mix!
+    DS_UP_FORMAT=${CLR_FORMAT}
+    DS_UP_VERSION=${CLR_LATEST}
+fi
 
 format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
 if (( ${format_bumps} )); then
@@ -252,7 +219,7 @@ for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
     if [ "${DS_UP_VERSION}" -lt "${up_prev_latest_ver}" ]; then
         step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} ))
     else
-        # We some built a Mix based on the last version of a format, without bumping
+        # We built a Mix based on the last version of a format, without bumping
         step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} + ${MIX_INCREMENT} ))
     fi
 

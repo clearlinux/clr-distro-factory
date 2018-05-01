@@ -166,3 +166,24 @@ get_latest_versions() {
         fi
     fi
 }
+
+calc_mix_version() {
+    # Compute initial next version (ignoring the need for format bumps)
+    if [[ -z ${DS_LATEST} || ${CLR_LATEST} -gt ${DS_UP_VERSION} ]]; then
+        MIX_VERSION=$((${CLR_LATEST} * 1000 + ${MIX_INCREMENT}))
+    elif [[ ${CLR_LATEST} -eq ${DS_UP_VERSION} ]]; then
+        MIX_VERSION=$((${DS_LATEST} + ${MIX_INCREMENT}))
+        if [[ ${MIX_VERSION: -3} -eq 000 ]]; then
+            echo "[ERROR] Invalid Mix version:"
+            echo "    No more Downstream versions available for this Upstream version!"
+            exit 1
+        fi
+    else
+        echo "[ERROR] Invalid Mix version:"
+        echo "    Next Upstream Version is less than the Previous Upstream!"
+        exit 1
+    fi
+
+    MIX_UP_VERSION=${MIX_VERSION: : -3}
+    MIX_DOWN_VERSION=${MIX_VERSION: -3}
+}

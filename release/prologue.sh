@@ -42,6 +42,8 @@ Downstream Koji Tag:
     ${KOJI_TAG}
 Upstream URL:
     ${CLR_PUBLIC_DL_URL}
+Upstream Bundles:
+    ${CLR_BUNDLES:-"All"}
 
 == Workspace ==
 Namespace:
@@ -77,6 +79,16 @@ else
     echo "Based on Upstream Version:"
     echo "    ${DS_UP_VERSION} (${DS_UP_FORMAT})"
 fi
+echo "Mix Increment:"
+echo "    ${MIX_INCREMENT}"
+
+calc_mix_version
+var_save MIX_VERSION
+var_save MIX_UP_VERSION
+var_save MIX_DOWN_VERSION
+
+echo "Next Downstream Version:"
+echo "    ${MIX_VERSION: : -3} ${MIX_VERSION: -3} (${DS_FORMAT})"
 echo
 
 echo -n "Sanitizing work environment..."
