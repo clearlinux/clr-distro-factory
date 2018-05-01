@@ -39,9 +39,6 @@ var_load MIX_DOWN_VERSION
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 
 download_bundles() {
-    local clear_ver="$1"
-    local mix_ver="$2"
-
     echo ""
     echo "=== DOWNLOADING BUNDLES"
 
@@ -56,25 +53,6 @@ download_bundles() {
 
     # Clone the Mix Bundles repo
     /usr/bin/git clone --quiet ${BUNDLES_REPO} ${MIX_DIR}
-
-    # Clean bundles file, otherwise mixer will use the outdated list
-    # and cause an error if bundles happen to be deleted
-    rm -f ./mixbundles
-
-    # Ensure the Upstream and Mix versions are set
-    if [ -f "${BUILDER_CONF}/mixversion" ]; then
-        # Update the Clear and Mix versions
-        echo -n ${clear_ver} | sudo -E \
-            tee "$BUILD_DIR/upstreamversion" > /dev/null
-        echo -n ${mix_ver} | sudo -E \
-            tee "$BUILD_DIR/mixversion" > /dev/null
-    else
-        # We have no mixversion, so we need to call init-mix for the first (and only) time
-        sudo -E mixer init --config ${BUILDER_CONF} --clear-version ${clear_ver} --mix-version ${mix_ver}
-    fi
-
-    # Add the upstream Bundle definitions for this base version of ClearLinux
-    sudo -E mixer bundle add --config ${BUILDER_CONF} ${CLR_BUNDLES:-"--all-upstream"}
 
     # Ensure our custom bundles replace any upstream files
     pushd ${MIX_DIR} > /dev/null
@@ -126,10 +104,29 @@ generate_mix() {
     local bump_format=$(( "$3" + 0 ))
     local bump_ver=$(( "$4" + 0 ))
 
-    download_bundles "${clear_ver}" "${mix_ver}"
-
     echo
     echo "=== GENERATING MIX"
+
+    # Clean bundles file, otherwise mixer will use the outdated list
+    # and cause an error if bundles happen to be deleted
+    rm -f ./mixbundles
+
+    # Ensure the Upstream and Mix versions are set
+    if [ -f "${BUILDER_CONF}/mixversion" ]; then
+        # Update the Clear and Mix versions
+        echo -n ${clear_ver} | sudo -E \
+            tee "$BUILD_DIR/upstreamversion" > /dev/null
+        echo -n ${mix_ver} | sudo -E \
+            tee "$BUILD_DIR/mixversion" > /dev/null
+    else
+        # We have no mixversion, so we need to call init-mix for the first (and only) time
+        sudo -E mixer init --config ${BUILDER_CONF} --clear-version ${clear_ver} --mix-version ${mix_ver}
+    fi
+
+    # Add the upstream Bundle definitions for this base version of ClearLinux
+    sudo -E mixer bundle add --config ${BUILDER_CONF} ${CLR_BUNDLES:-"--all-upstream"}
+
+    download_bundles
 
     # Create the local repo directory
     LOCAL_REPO=$(grep '^LOCAL_REPO_DIR' ${BUILDER_CONF} | awk -F= '{print $NF}')
