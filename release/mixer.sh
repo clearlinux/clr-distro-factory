@@ -36,8 +36,6 @@ var_load MIX_VERSION
 var_load MIX_UP_VERSION
 var_load MIX_DOWN_VERSION
 
-BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
-
 download_bundles() {
     echo ""
     echo "=== DOWNLOADING BUNDLES"
@@ -112,26 +110,26 @@ generate_mix() {
     rm -f ./mixbundles
 
     # Ensure the Upstream and Mix versions are set
-    sudo -E mixer init --config ${BUILDER_CONF} --clear-version ${clear_ver} --mix-version ${mix_ver}
+    sudo -E mixer init --clear-version ${clear_ver} --mix-version ${mix_ver}
 
     # Add the upstream Bundle definitions for this base version of ClearLinux
-    sudo -E mixer bundle add --config ${BUILDER_CONF} ${CLR_BUNDLES:-"--all-upstream"}
+    sudo -E mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
 
     download_bundles
 
     # Create the local repo directory
-    LOCAL_REPO=$(grep '^LOCAL_REPO_DIR' ${BUILDER_CONF} | awk -F= '{print $NF}')
+    LOCAL_REPO=$(grep '^LOCAL_REPO_DIR' ${BUILD_DIR}/builder.conf | awk -F= '{print $NF}')
     # Expand the environment variables
     LOCAL_REPO=$(echo $(eval echo ${LOCAL_REPO}))
     /usr/bin/mkdir -p ${LOCAL_REPO}
 
     echo ""
     echo "Adding RPMs ..."
-    sudo -E mixer add-rpms --config ${BUILDER_CONF}
+    sudo -E mixer add-rpms
 
     echo ""
     echo "Creating chroots ..."
-    sudo -E mixer build bundles --config ${BUILDER_CONF}
+    sudo -E mixer build bundles
 
     if [[ "${bump_format}" -gt 0 ]]; then
         echo ""
@@ -144,7 +142,7 @@ generate_mix() {
 
     echo ""
     echo "Building update ..."
-    sudo -E mixer build update --config ${BUILDER_CONF}
+    sudo -E mixer build update
 
     if [[ -n "${DS_LATEST}" ]]; then
         echo ""
@@ -161,26 +159,26 @@ generate_mix() {
 # ==============================================================================
 echo "=== STARTING MIXING"
 echo
-echo "BUILDER_CONF=${BUILDER_CONF}"
 echo "MIX_INCREMENT=${MIX_INCREMENT}"
 echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
 
 assert_dir ${BUILD_DIR}
 pushd ${BUILD_DIR} > /dev/null
 
-if [ -f ${BUILDER_CONF} ]; then
-    echo
-    echo "=== USING EXISTING BUILDER.CONF FILE"
+echo
+echo "Builder Conf file:"
+if [[ -f ${BUILD_DIR}/builder.conf ]]; then
+    echo "    Reusing existing file"
 else
-    echo
-    echo "=== GENERATE BUILDER.CONF FILE"
+    echo "    Generating new file"
 
     # Write the configuration file based on the template.
-    sed -e "s#\${BUILD_DIR}#${BUILD_DIR}#" -e "s#\${DSTREAM_DL_URL}#${DSTREAM_DL_URL}#" ${SCRIPT_DIR}/builder.conf.in > ${BUILDER_CONF}
+    sed -e "s#\${BUILD_DIR}#${BUILD_DIR}#" \
+        -e "s#\${DSTREAM_DL_URL}#${DSTREAM_DL_URL}#" \
+        ${SCRIPT_DIR}/builder.conf.in > ${BUILD_DIR}/builder.conf
 fi
-
-echo "${BUILDER_CONF} contents:"
-cat ${BUILDER_CONF}
+echo "Builder Conf Contents:"
+cat ${BUILD_DIR}/builder.conf
 
 download_mix_rpms # Pull down the RPMs from Downstream Koji
 
@@ -232,10 +230,11 @@ for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
     generate_mix "${up_prev_latest_ver}" "${step_mix_ver}" ${next_mix_format} ${next_mix_ver}
 
     # Bump the Mix Format
-    # Modify the BUILDER_CONF with the new format
+    # Modify the "builder.conf" with the new format
     # TODO: Need to check-in to git
-    sed -r 's/^(FORMAT=)([0-9]+)(.*)/echo "\1$((\2+1))\3"/ge' ${BUILDER_CONF} > ${BUILDER_CONF}.new
-    mv ${BUILDER_CONF}.new ${BUILDER_CONF}
+    # TODO: Sed in place
+    sed -r 's/^(FORMAT=)([0-9]+)(.*)/echo "\1$((\2+1))\3"/ge' ${BUILD_DIR}/builder.conf > ${BUILD_DIR}/builder.conf.new
+    mv ${BUILD_DIR}/builder.conf.new ${BUILD_DIR}/builder.conf
 
     echo
     echo "=== GENERATING INTERMEDIATE MIX ${next_mix_ver}"
