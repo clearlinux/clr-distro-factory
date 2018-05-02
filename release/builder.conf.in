@@ -3,7 +3,7 @@ SERVER_STATE_DIR=${BUILD_DIR}/update
 BUNDLE_DIR=${BUILD_DIR}/mix-bundles
 YUM_CONF=${BUILD_DIR}/.yum-mix.conf
 CERT=${BUILD_DIR}/Swupd_Root.pem
-VERSIONS_PATH=${BUILD_DIR}/
+VERSIONS_PATH=${BUILD_DIR}
 
 [swupd]
 BUNDLE=os-core-update
@@ -17,6 +17,6 @@ debuginfo_lib=/usr/lib/debug/
 debuginfo_src=/usr/src/debug/
 
 [Mixer]
-LOCAL_BUNDLE_DIR=${BUILD_DIR}/mix-bundles
-LOCAL_RPM_DIR=${BUILD_DIR}/rpms
-LOCAL_REPO_DIR=${BUILD_DIR}/local
+LOCAL_BUNDLE_DIR=${BUILD_DIR}/local-bundles
+LOCAL_RPM_DIR=${BUILD_DIR}/local-rpms
+LOCAL_REPO_DIR=${BUILD_DIR}/local-yum

@@ -40,6 +40,8 @@ Downstream Koji Server:
     ${KOJI_URL}
 Downstream Koji Tag:
     ${KOJI_TAG}
+Dowstream Bundles:
+    ${DS_BUNDLES:-"All"}
 Upstream URL:
     ${CLR_PUBLIC_DL_URL}
 Upstream Bundles:

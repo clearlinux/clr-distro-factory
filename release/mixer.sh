@@ -15,6 +15,7 @@
 
 # MIX_VERSION: Version number for this new Mix being generated
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
+# DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
 
 set -e
 
@@ -37,25 +38,16 @@ var_load MIX_UP_VERSION
 var_load MIX_DOWN_VERSION
 
 download_bundles() {
-    echo ""
-    echo "=== DOWNLOADING BUNDLES"
+    echo "Cloning Downstream Bundles:"
+    rm -rf ./local-bundles
 
-    if [ -z ${MIX_DIR} ]; then
-        MIX_DIR="mix-bundles"
-    fi
+    # Clone the Downstream Bundles repository
+    git clone --quiet ${BUNDLES_REPO} local-bundles
 
-    if [ -d ${MIX_DIR} ]; then
-        # Rename any existing MIX directory
-        /usr/bin/mv ${MIX_DIR} ${MIX_DIR}.$(date +%Y%m%d.%H%M%S)
-    fi
-
-    # Clone the Mix Bundles repo
-    /usr/bin/git clone --quiet ${BUNDLES_REPO} ${MIX_DIR}
-
-    # Ensure our custom bundles replace any upstream files
-    pushd ${MIX_DIR} > /dev/null
-    /usr/bin/git reset --quiet --hard HEAD
-    # Change back to previous working directory
+    # FIXME Mixer 4.3.3 bug
+    # Ensure only the bundles definitions are on this directory
+    pushd local-bundles > /dev/null
+    rm -rf ./.git
     popd > /dev/null
 }
 
@@ -74,18 +66,12 @@ download_mix_rpms() {
     echo ""
     echo "=== DOWNLOADING RPMS"
 
-    if [ -z ${RPM_DIR} ]; then
-        RPM_DIR="rpms"
-    fi
-
     # Remove any existing RPM directory as it may contain
     # RPMs which are no longer tagged from a previous download
-    if [ -d ${RPM_DIR} ]; then
-        /usr/bin/rm -rf ${RPM_DIR}
-    fi
-    # Create and change to RPM target directory
-    /usr/bin/mkdir -p ${RPM_DIR}
-    pushd ${RPM_DIR} > /dev/null
+    rm -rf local-rpms
+
+    mkdir -p local-rpms
+    pushd local-rpms > /dev/null
 
     for rpm in $(cat ${BUILD_DIR}/${PKG_LIST_FILE}); do
         echo "--- ${rpm}"
@@ -115,13 +101,8 @@ generate_mix() {
     # Add the upstream Bundle definitions for this base version of ClearLinux
     mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
 
-    download_bundles
-
-    # Create the local repo directory
-    LOCAL_REPO=$(grep '^LOCAL_REPO_DIR' ${BUILD_DIR}/builder.conf | awk -F= '{print $NF}')
-    # Expand the environment variables
-    LOCAL_REPO=$(echo $(eval echo ${LOCAL_REPO}))
-    /usr/bin/mkdir -p ${LOCAL_REPO}
+    # Add the downstream Bundle definitions
+    mixer bundle add ${DS_BUNDLES:-"--all-local"}
 
     echo ""
     echo "Adding RPMs ..."
@@ -145,13 +126,13 @@ generate_mix() {
     sudo -E mixer build update
 
     if [[ -n "${DS_LATEST}" ]]; then
-        echo ""
+        echo
         echo "Generating upgrade packs ..."
-        sudo -E mixer-pack-maker.sh --to ${mix_ver} --from ${DS_LATEST} -S ${BUILD_DIR}/update
+        sudo -E mixer build delta-packs --from ${DS_LATEST} --to ${mix_ver}
     fi
 
     echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
-    sudo -E /usr/bin/cp -a ${PKG_LIST_FILE} update/www/${mix_ver}/
+    sudo -E cp -a ${PKG_LIST_FILE} update/www/${mix_ver}/
 }
 
 # ==============================================================================
@@ -181,6 +162,8 @@ echo "Builder Conf Contents:"
 cat ${BUILD_DIR}/builder.conf
 
 download_mix_rpms # Pull down the RPMs from Downstream Koji
+
+download_bundles # Download the Downstream Bundles Repository
 
 if [[ -z ${DS_LATEST} ]]; then
     # This is our First Mix!
