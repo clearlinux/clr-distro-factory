@@ -110,10 +110,10 @@ generate_mix() {
     rm -f ./mixbundles
 
     # Ensure the Upstream and Mix versions are set
-    sudo -E mixer init --clear-version ${clear_ver} --mix-version ${mix_ver}
+    mixer init --clear-version ${clear_ver} --mix-version ${mix_ver}
 
     # Add the upstream Bundle definitions for this base version of ClearLinux
-    sudo -E mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
+    mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
 
     download_bundles
 
@@ -125,7 +125,7 @@ generate_mix() {
 
     echo ""
     echo "Adding RPMs ..."
-    sudo -E mixer add-rpms
+    mixer add-rpms
 
     echo ""
     echo "Creating chroots ..."
