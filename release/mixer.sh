@@ -57,6 +57,10 @@ download_bundles() {
     # Clone the Mix Bundles repo
     /usr/bin/git clone --quiet ${BUNDLES_REPO} ${MIX_DIR}
 
+    # Clean bundles file, otherwise mixer will use the outdated list
+    # and cause an error if bundles happen to be deleted
+    rm -f ./mixbundles
+
     # Ensure the Upstream and Mix versions are set
     if [ -f "${BUILDER_CONF}/mixversion" ]; then
         # Update the Clear and Mix versions
@@ -71,9 +75,6 @@ download_bundles() {
 
     # Add the upstream Bundle definitions for this base version of ClearLinux
     sudo -E mixer bundle add --config ${BUILDER_CONF} ${CLR_BUNDLES:-"--all-upstream"}
-
-    # Clean up
-    sudo -E /usr/bin/rm -rf clr-bundles
 
     # Ensure our custom bundles replace any upstream files
     pushd ${MIX_DIR} > /dev/null
