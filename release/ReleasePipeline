@@ -27,6 +27,11 @@ pipeline {
                 sh 'release/stage.sh'
             }
         }
+        stage('Publish') {
+            steps {
+                sh 'release/publish.sh'
+            }
+        }
     }
 
     post {
