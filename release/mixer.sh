@@ -69,7 +69,9 @@ download_mix_rpms() {
     # Remove any existing RPM directory as it may contain
     # RPMs which are no longer tagged from a previous download
     rm -rf local-rpms
+    rm -rf local-yum
 
+    mkdir -p local-yum
     mkdir -p local-rpms
     pushd local-rpms > /dev/null
 
