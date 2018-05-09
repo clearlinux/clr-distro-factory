@@ -23,4 +23,4 @@ To:
 EOL
 
 assert_dir ${STAGING_DIR}
-rsync -rlHpt --delete --exclude '*.src.rpm' -e ssh ${STAGING_DIR}/ ${REMOTE_PATH}
+rsync -vrlHpt --delete --exclude '*.src.rpm' -e ssh ${STAGING_DIR}/ ${REMOTE_PATH}
