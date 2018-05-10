@@ -32,21 +32,27 @@ echo "=== STAGING MIX"
 mkdir -p ${STAGING_DIR}/update/
 rsync -ah update/www/ ${STAGING_DIR}/update/
 
-echo "=== SETTING LATEST VERSION"
+echo "== SETTING LATEST VERSION =="
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
 
 /usr/bin/mkdir -p ${STAGING_DIR}/releases/
 mix_version=$(cat mixversion)
 image="releases/${DSTREAM_NAME}-${mix_version}-kvm.img"
 if [ -f "${image}" ]; then
-    echo "=== STAGING RELEASE IMAGE ${image}"
+    echo "== STAGING RELEASE IMAGE ${image} =="
     /usr/bin/xz -3 --stdout "${image}" > "${STAGING_DIR}/${image}.xz"
 else
     echo "MISSING release image ${image}!"
     exit 2
 fi
 
-echo "=== FIXING PERMISSIONS AND OWNERSHIP"
+echo "== FIXING PERMISSIONS AND OWNERSHIP =="
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
 
 popd > /dev/null
+
+echo "== TAGGING =="
+echo "Workflow Configuration:"
+git -C config tag ${MIX_VERSION}
+git -C config push origin --tags
+echo "    Tag: ${MIX_VERSION}. OK!"
