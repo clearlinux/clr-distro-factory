@@ -20,13 +20,21 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
-cat <<EOL
-=== PROLOGUE
+echo "=== Build Environment" > ${BUILD_FILE}
+echo "=== PROLOGUE"
+tee -a ${BUILD_FILE} <<EOL
 Workflow Repository:
     $(git remote get-url origin) ($(git rev-parse --short HEAD))
 EOL
+
 fetch_config_repo
 . ./config/config.sh
+
+cat >> ${BUILD_FILE} <<EOL
+Workflow Config Repository:
+    $(git -C config remote get-url origin) ($(git -C config rev-parse --short HEAD))
+
+EOL
 
 cat <<EOL
 == Configuration ==
@@ -91,7 +99,22 @@ var_save MIX_DOWN_VERSION
 
 echo "Next Downstream Version:"
 echo "    ${MIX_VERSION: : -3} ${MIX_VERSION: -3} (${DS_FORMAT})"
+
+echo "Current MIX:"
+echo "    ${MIX_VERSION}"
+
 echo
+
+tee -a ${BUILD_FILE} <<EOL
+== TOOLS ==
+Clear Linux Version (on Builder):
+    $(cat /usr/share/clear/version)
+Mixer Version:
+    $(mixer --version)
+Swupd Version:
+    $(swupd --version 2>&1 | head -1)
+
+EOL
 
 echo -n "Sanitizing work environment..."
 mkdir -p ${BUILD_DIR}

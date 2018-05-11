@@ -19,6 +19,7 @@ set -e
 
 SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
+. ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
 . ./config/config.sh
@@ -35,7 +36,7 @@ rsync -ah update/www/ ${STAGING_DIR}/update/
 echo "== SETTING LATEST VERSION =="
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
 
-/usr/bin/mkdir -p ${STAGING_DIR}/releases/
+mkdir -p ${STAGING_DIR}/releases/
 mix_version=$(cat mixversion)
 image="releases/${DSTREAM_NAME}-${mix_version}-kvm.img"
 if [ -f "${image}" ]; then
@@ -46,10 +47,12 @@ else
     exit 2
 fi
 
+popd > /dev/null
+
+cp ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${mix_version}.txt
+
 echo "== FIXING PERMISSIONS AND OWNERSHIP =="
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
-
-popd > /dev/null
 
 echo "== TAGGING =="
 echo "Workflow Configuration:"
