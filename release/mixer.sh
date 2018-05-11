@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# MIX_VERSION: Version number for this new Mix being generated
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
 # DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
 
@@ -46,9 +45,8 @@ download_bundles() {
 
     # FIXME Mixer 4.3.3 bug
     # Ensure only the bundles definitions are on this directory
-    pushd local-bundles > /dev/null
-    rm -rf ./.git
-    popd > /dev/null
+    rm -rf ./git-bundles
+    mv -f local-bundles/.git ./git-bundles
 }
 
 download_mix_rpms() {

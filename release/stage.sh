@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# MIX_VERSION:  Version number for this new Mix being generated
-
 set -e
 
 SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
@@ -26,6 +24,10 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 assert_dir ${STAGING_DIR}
 assert_dir ${BUILD_DIR}
+assert_dir ${BUILD_DIR}/git-bundles #FIXME Mixer 4.3.3 workaround
+assert_dir ${BUILD_DIR}/local-bundles
+
+var_load MIX_VERSION
 
 pushd ${BUILD_DIR} > /dev/null
 
@@ -37,8 +39,7 @@ echo "== SETTING LATEST VERSION =="
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
 
 mkdir -p ${STAGING_DIR}/releases/
-mix_version=$(cat mixversion)
-image="releases/${DSTREAM_NAME}-${mix_version}-kvm.img"
+image="releases/${DSTREAM_NAME}-${MIX_VERSION}-kvm.img"
 if [ -f "${image}" ]; then
     echo "== STAGING RELEASE IMAGE ${image} =="
     /usr/bin/xz -3 --stdout "${image}" > "${STAGING_DIR}/${image}.xz"
@@ -49,13 +50,19 @@ fi
 
 popd > /dev/null
 
-cp ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${mix_version}.txt
+cp ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${MIX_VERSION}.txt
 
 echo "== FIXING PERMISSIONS AND OWNERSHIP =="
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
 
 echo "== TAGGING =="
 echo "Workflow Configuration:"
-git -C config tag ${MIX_VERSION}
-git -C config push origin --tags
+git -C config tag -f ${MIX_VERSION}
+git -C config push --quiet -f --tags origin
 echo "    Tag: ${MIX_VERSION}. OK!"
+
+mv -f ${BUILD_DIR}/git-bundles ${BUILD_DIR}/local-bundles/.git
+echo "Downstream Bundles Repository:"
+git -C ${BUILD_DIR}/local-bundles tag -f ${NAMESPACE:-${DSTREAM_NAME}}-${MIX_VERSION}
+git -C ${BUILD_DIR}/local-bundles push --quiet -f --tags origin
+echo "    Tag: ${NAMESPACE:-${DSTREAM_NAME}}-${MIX_VERSION}. OK!"
