@@ -51,6 +51,7 @@ fi
 popd > /dev/null
 
 cp ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${MIX_VERSION}.txt
+cp ${RELEASE_NOTES} ${STAGING_DIR}/releases/${RELEASE_NOTES}-${MIX_VERSION}.txt
 
 echo "== FIXING PERMISSIONS AND OWNERSHIP =="
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}

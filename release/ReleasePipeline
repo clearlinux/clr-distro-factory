@@ -24,6 +24,7 @@ pipeline {
         }
         stage('Stage') {
             steps {
+                sh 'release/release_notes.sh'
                 sh 'release/stage.sh'
             }
         }
