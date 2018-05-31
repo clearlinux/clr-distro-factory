@@ -85,15 +85,15 @@ koji_cmd() {
 }
 
 assert_dep () {
-    command -v $1 > /dev/null 2>&1 || { echo >&2 "Error: command '$1' not found"; exit 1; }
+    command -v $1 > /dev/null 2>&1 || { error "command '$1' not found"; exit 1; }
 }
 
 assert_dir () {
-    [ -d $1 ] > /dev/null 2>&1 || { echo >&2 "Error: directory '$1' not found"; exit 1; }
+    [[ -d $1 ]] > /dev/null 2>&1 || { error "directory '$1' not found"; exit 1; }
 }
 
 assert_file() {
-    [ -f $1 ] > /dev/null 2>&1 || { echo >&2 "Error: file '$1' not found"; exit 1; }
+    [[ -f $1 ]] > /dev/null 2>&1 || { error "file '$1' not found"; exit 1; }
 }
 
 silentkill () {
@@ -125,30 +125,30 @@ run_and_log() {
 }
 
 fetch_config_repo() {
-    echo "Config Repository:"
+    log_line "Config Repository:"
 
     if [[ ! -d ./config ]]; then
         local REPO_HOST=${CONFIG_REPO_HOST:?"CONFIG_REPO_HOST cannot be Null/Unset"}
         local REPO_NAME=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
-        echo -n "    Cloning..."
+        log_line "Cloning..." 1
         git clone --quiet ${REPO_HOST}${REPO_NAME} config
-        echo "OK!"
+        log_line "OK!" 2
     else
-        echo -n "    Updating..."
+        log_line "Updating..." 1
         pushd ./config > /dev/null
         git fetch --prune -P --quiet origin
         git reset --hard --quiet origin/master
         popd > /dev/null
-        echo "OK!"
+        log_line "OK!" 2
     fi
 
     pushd ./config > /dev/null
-    echo "    $(git remote get-url origin) ($(git rev-parse --short HEAD))"
-    echo -n "    Checking for the required files..."
+    log_line "$(git remote get-url origin) ($(git rev-parse --short HEAD))" 1
+    log_line "Checking for the required files..." 1
     assert_file ./config.sh
     assert_file ./release-image-config.json
     popd > /dev/null
-    echo "OK!"
+    log_line "OK!" 2
     echo
 }
 
@@ -156,7 +156,7 @@ var_save() {
     local VARS_DIR=${VARS_DIR:?"VARS_DIR Cannot be Null/Unset"}
 
     if (( $# != 1 )); then
-        echo "[ERROR] 'var_save' requires a single argument!"
+        error "'var_save' requires a single argument!"
         return 1
     fi
 
@@ -173,7 +173,7 @@ var_save() {
 
 var_load() {
     if (( $# != 1 )); then
-        echo "[ERROR] 'var_load' requires a single argument!"
+        error "'var_load' requires a single argument!"
         return 1
     fi
 
@@ -183,27 +183,27 @@ var_load() {
 get_latest_versions() {
     CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest) || true
     if [[ -z $CLR_LATEST ]]; then
-        echo "[ERROR] Failed to fetch Clear Linux latest version."
+        error "Failed to fetch Clear Linux latest version."
         exit 2
     fi
 
     CLR_FORMAT=$(curl ${CLR_PUBLIC_DL_URL}/update/${CLR_LATEST}/format) || true
     if [[ -z $CLR_FORMAT ]]; then
-        echo "[ERROR] Failed to fetch Clear Linux latest format."
+        error "Failed to fetch Clear Linux latest format."
         exit 2
     fi
 
     DS_LATEST=$(cat ${STAGING_DIR}/latest 2>/dev/null) || true
     if [[ -z $DS_LATEST ]]; then
-        echo "[INFO] Failed to fetch Downstream latest version. First Mix?"
+        info "Failed to fetch Downstream latest version. First Mix?"
         DS_FORMAT=0
     elif ((${#DS_LATEST} < 4)); then
-        echo "[ERROR] Downstream Clear Linux version number seems corrupted."
+        error "Downstream Clear Linux version number seems corrupted."
         exit 2
     else
         DS_FORMAT=$(cat ${STAGING_DIR}/update/${DS_LATEST}/format 2>/dev/null) || true
         if [[ -z $DS_FORMAT ]]; then
-            echo "[ERROR] Failed to fetch Downstream latest format."
+            error "Failed to fetch Downstream latest format."
             exit 2
         fi
 
@@ -212,7 +212,7 @@ get_latest_versions() {
 
         DS_UP_FORMAT=$(curl ${CLR_PUBLIC_DL_URL}/update/${DS_UP_VERSION}/format) || true
         if [[ -z $DS_UP_FORMAT ]]; then
-            echo "[ERROR] Failed to fetch Downstream latest base format."
+            error "Failed to fetch Downstream latest base format."
             exit 2
         fi
     fi
@@ -225,13 +225,13 @@ calc_mix_version() {
     elif [[ ${CLR_LATEST} -eq ${DS_UP_VERSION} ]]; then
         MIX_VERSION=$((${DS_LATEST} + ${MIX_INCREMENT}))
         if [[ ${MIX_VERSION: -3} -eq 000 ]]; then
-            echo "[ERROR] Invalid Mix version:"
-            echo "    No more Downstream versions available for this Upstream version!"
+            error "Invalid Mix Version" \
+                "No more Downstream versions available for this Upstream version!"
             exit 1
         fi
     else
-        echo "[ERROR] Invalid Mix version:"
-        echo "    Next Upstream Version is less than the Previous Upstream!"
+        error "Invalid Mix version" \
+            "Next Upstream Version is less than the Previous Upstream!"
         exit 1
     fi
 
