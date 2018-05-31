@@ -19,12 +19,61 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
-
-. ./config/config.sh
+. ${SCRIPT_DIR}/../config/config.sh
 
 var_load MIX_VERSION
 
+LOG_DIR="${WORK_DIR}/logs"
+PROCS_PER_IMG=8
 TEMPLATES_PATH=${TEMPLATES_PATH:-"${PWD}/config/images"}
+
+create_image() {
+    # ${1} - File path to image template file
+    local image=${1}
+    local tempdir=$(mktemp -d)
+    local name=$(basename ${image%.json})
+    local ister_log="${LOG_DIR}/ister-${name}.log"
+
+    if [[ -z "${image}" || -z "${name}" ]]; then
+        error "Image creation failed. Invalid input" "${1}"
+        return 1
+    fi
+
+    pushd ${BUILD_DIR} > /dev/null
+    sudo -E ister.py -s Swupd_Root.pem -L debug -S ${tempdir} \
+        -C file://${BUILD_DIR}/update/www -V file://${BUILD_DIR}/update/www \
+        -f ${format} -t ${image} > ${ister_log} 2>&1
+    local ister_ret=$?
+    sudo rm -rf ${tempdir}
+
+    if (( ${ister_ret} )) || [[ ! -s "${name}.img" ]]; then
+        log "Image '${name}'" "Failed. See log below:"
+        echo
+        cat ${ister_log}
+        echo
+        return 1
+    fi
+
+    xz -3 --stdout ${name}.img > releases/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz
+    sudo rm ${name}.img
+
+    if [[ ! -s "releases/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz" ]]; then
+        log "Image '${name}'" "Failed to create compressed file."
+        return 1
+    fi
+
+    popd > /dev/null
+    log "Image '${name}'" "OK!"
+}
+
+parallel_fn() {
+    # Intended to be used only by GNU Parallel
+    . ${SCRIPT_DIR}/../globals.sh
+    . ${SCRIPT_DIR}/../common.sh
+    . ${SCRIPT_DIR}/../config/config.sh
+
+    create_image $@
+}
 
 # ==============================================================================
 # MAIN
@@ -44,27 +93,15 @@ if [[ -z "${format}" ]]; then
     exit 1
 fi
 
-pushd ${BUILD_DIR} > /dev/null
-mkdir -p releases
+mkdir -p ${LOG_DIR}
+mkdir -p ${BUILD_DIR}/releases
 
-log_line "Creating Images:"
-
-LOG_INDENT=1
-for image in ${image_list}; do
-    tempdir=$(mktemp -d)
-    name=$(basename ${image%.json})
-
-    log_line "${name}:"
-    sudo -E ister.py -s Swupd_Root.pem -L debug -S ${tempdir} \
-        -C file://${BUILD_DIR}/update/www -V file://${BUILD_DIR}/update/www \
-        -f ${format} -t ${image} -l ister-${name}.log
-
-    xz -3 --stdout ${name}.img > releases/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz
-    log_line "OK!" 1
-
-    sudo rm ${name}.img
-    sudo rm -rf ${tempdir}
-done
-unset LOG_INDENT
-
-popd > /dev/null
+export LOG_DIR
+export MIX_VERSION
+export SCRIPT_DIR
+export -f create_image
+export -f parallel_fn
+export format
+procs=$(nproc --all)
+max_jobs=$(( ${procs:=0} > ${PROCS_PER_IMG} ? ${procs} / ${PROCS_PER_IMG} : 1 ))
+parallel -j ${max_jobs} parallel_fn <<< ${image_list}
