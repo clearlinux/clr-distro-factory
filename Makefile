@@ -25,7 +25,7 @@ $(STEPS): ${BUILD_DIR} ${STAGING_DIR}
 	release/$@.sh
 
 .NOTPARALLEL: release
-release: prologue mixer ister stage
+release: prologue mixer images stage
 
 .PHONY: serve
 serve: ${STAGING_DIR}

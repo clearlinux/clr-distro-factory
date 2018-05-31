@@ -19,7 +19,7 @@ pipeline {
         }
         stage('Create Images') {
             steps {
-                sh 'release/ister.sh'
+                sh 'release/images.sh'
             }
         }
         stage('Stage') {
