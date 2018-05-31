@@ -24,11 +24,20 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 var_load MIX_VERSION
 
-IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${PWD}/config/release-image-config.json"}
+TEMPLATES_PATH=${TEMPLATES_PATH:-"${PWD}/config/images"}
 
 # ==============================================================================
 # MAIN
 # ==============================================================================
+stage "Image Generation"
+
+image_list=$(ls ${TEMPLATES_PATH}/*.json 2>/dev/null || true)
+if [[ -z "${image_list}" ]]; then
+    warn "Skipping stage."
+    warn "No image definition files found in" "${TEMPLATES_PATH}"
+    exit 0
+fi
+
 format=$(< ${BUILD_DIR}/update/www/${MIX_VERSION}/format)
 if [[ -z "${format}" ]]; then
     error "Failed to fetch Downstream current format."
@@ -36,21 +45,26 @@ if [[ -z "${format}" ]]; then
 fi
 
 pushd ${BUILD_DIR} > /dev/null
-
-echo "${IMAGE_TEMPLATE} contents:"
-cat ${IMAGE_TEMPLATE}
-
-echo
-echo "=== GENERATING RELEASE IMAGE"
-tempdir=$(mktemp -d)
-
-sudo -E ister.py -s Swupd_Root.pem -t ${IMAGE_TEMPLATE} \
-    -C file://${PWD}/update/www -V file://${PWD}/update/www \
-    -f ${format} -l ister.log -S ${tempdir}
-
-sudo -E rm -rf ${tempdir}
-
 mkdir -p releases
-sudo -E mv release.img releases/${DSTREAM_NAME}-${MIX_VERSION}-kvm.img
+
+log_line "Creating Images:"
+
+LOG_INDENT=1
+for image in ${image_list}; do
+    tempdir=$(mktemp -d)
+    name=$(basename ${image%.json})
+
+    log_line "${name}:"
+    sudo -E ister.py -s Swupd_Root.pem -L debug -S ${tempdir} \
+        -C file://${BUILD_DIR}/update/www -V file://${BUILD_DIR}/update/www \
+        -f ${format} -t ${image} -l ister-${name}.log
+
+    xz -3 --stdout ${name}.img > releases/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz
+    log_line "OK!" 1
+
+    sudo rm ${name}.img
+    sudo rm -rf ${tempdir}
+done
+unset LOG_INDENT
 
 popd > /dev/null

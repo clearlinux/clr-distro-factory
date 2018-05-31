@@ -39,19 +39,12 @@ echo "== SETTING LATEST VERSION =="
 /usr/bin/cp -a update/latest ${STAGING_DIR}/
 
 mkdir -p ${STAGING_DIR}/releases/
-image="releases/${DSTREAM_NAME}-${MIX_VERSION}-kvm.img"
-if [ -f "${image}" ]; then
-    echo "== STAGING RELEASE IMAGE ${image} =="
-    /usr/bin/xz -3 --stdout "${image}" > "${STAGING_DIR}/${image}.xz"
-else
-    echo "MISSING release image ${image}!"
-    exit 2
-fi
+rsync -ah releases/ ${STAGING_DIR}/releases/
 
 popd > /dev/null
 
-cp ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${MIX_VERSION}.txt
-cp ${RELEASE_NOTES} ${STAGING_DIR}/releases/${RELEASE_NOTES}-${MIX_VERSION}.txt
+cp -a ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${MIX_VERSION}.txt
+cp -a ${RELEASE_NOTES} ${STAGING_DIR}/releases/${RELEASE_NOTES}-${MIX_VERSION}.txt
 
 echo "== FIXING PERMISSIONS AND OWNERSHIP =="
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
