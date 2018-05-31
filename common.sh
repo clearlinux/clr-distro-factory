@@ -19,6 +19,12 @@
 
 # LOG_DOMAIN = Domain name to be printed in the beginning of each log line
 # LOG_INDENT = Indentation level to be applied on the log message after 'domain'
+# LOG_DIR    = Where 'run_and_log' should save log files
+# LOG_METHOD = To be used with 'run_and_log'. Default = './logs'
+#              0 - Log to file
+#              1 - Log to file and stdout
+#              2 - Log to stdout
+#            > 2 - Don't log
 
 log_line() {
     # ${1} - log message
@@ -62,6 +68,34 @@ warn() {
     log "[WARN] ${1}" ${2:+"${2}"} ${3}
 }
 
+run_and_log() {
+    if (( $# != 2 )); then
+        error "'run_and_log' requires exactly 2 arguments!"
+        return 1
+    fi
+
+    local cmd=${1}
+    local log_out="${2}.log"
+    local log_err="${2}_err.log"
+    local log_dir=${LOG_DIR:-"./logs"}
+
+    mkdir -p ${log_dir}
+
+    # Log to file
+    if [[ "${LOG_METHOD}" -eq 0 ]]; then
+        ${cmd} > "${log_dir}/${log_out}" 2> "${log_dir}/${log_err}" &
+    # Log to file and stdout
+    elif [[ "${LOG_METHOD}" -eq 1 ]]; then
+        ${cmd} > >(tee "${log_dir}/${log_out}") 2> >(tee "${log_dir}/${log_err}") &
+    # Log to stdout only
+    elif [[ "${LOG_METHOD}" -eq 2 ]]; then
+        ${cmd} &
+    # No output
+    else
+        ${cmd} > /dev/null 2> /dev/null &
+    fi
+}
+
 # =================
 
 curl() {
@@ -101,26 +135,6 @@ silentkill () {
         kill $2 $1 > /dev/null 2>&1 || true
     else
         kill -KILL $1 > /dev/null 2>&1 || true
-    fi
-}
-
-run_and_log() {
-    cmd=$1
-    log_out="${2}.log"
-    log_err="${2}_err.log"
-
-    # Log to file
-    if [ "$VERBOSE_LEVEL" -eq 0 ]; then
-        $cmd > "${LOGDIR}/${log_out}" 2> "${LOGDIR}/${log_err}" &
-    # Log to file and stdout
-    elif [ "$VERBOSE_LEVEL" -eq 1 ]; then
-        $cmd > >(tee "${LOGDIR}/${log_out}") 2> >(tee "${LOGDIR}/${log_err}") &
-    # Log to stdout only
-    elif [ "$VERBOSE_LEVEL" -eq 2 ]; then
-        $cmd &
-    # No output
-    else
-        $cmd > /dev/null 2> /dev/null &
     fi
 }
 
