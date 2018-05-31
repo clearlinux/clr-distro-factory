@@ -25,29 +25,27 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 BUILDER_CONF=${BUILDER_CONF:-"${BUILD_DIR}/builder.conf"}
 IMAGE_TEMPLATE=${IMAGE_TEMPLATE:-"${PWD}/config/release-image-config.json"}
 
-main() {
-    assert_dir ${BUILD_DIR}
-    pushd ${BUILD_DIR} > /dev/null
+# ==============================================================================
+# MAIN
+# ==============================================================================
+pushd ${BUILD_DIR} > /dev/null
 
-    echo "${IMAGE_TEMPLATE} contents:"
-    cat ${IMAGE_TEMPLATE}
+echo "${IMAGE_TEMPLATE} contents:"
+cat ${IMAGE_TEMPLATE}
 
-    echo
-    echo "=== GENERATING RELEASE IMAGE"
-    local tempdir=$(mktemp -d)
-    CURRENT_FORMAT=$(grep '^FORMAT' ${BUILDER_CONF} | awk -F= '{print $NF}')
+echo
+echo "=== GENERATING RELEASE IMAGE"
+tempdir=$(mktemp -d)
+CURRENT_FORMAT=$(grep '^FORMAT' ${BUILDER_CONF} | awk -F= '{print $NF}')
 
-    sudo -E ister.py -s Swupd_Root.pem -t ${IMAGE_TEMPLATE} \
-        -C file://${PWD}/update/www -V file://${PWD}/update/www \
-        -f ${CURRENT_FORMAT} -l ister.log -S ${tempdir}
+sudo -E ister.py -s Swupd_Root.pem -t ${IMAGE_TEMPLATE} \
+    -C file://${PWD}/update/www -V file://${PWD}/update/www \
+    -f ${CURRENT_FORMAT} -l ister.log -S ${tempdir}
 
-    sudo -E rm -rf ${tempdir}
+sudo -E rm -rf ${tempdir}
 
-    mix_version=$(cat mixversion)
-    mkdir -p releases
-    sudo -E /usr/bin/mv release.img releases/${DSTREAM_NAME}-${mix_version}-kvm.img
+mix_version=$(cat mixversion)
+mkdir -p releases
+sudo -E mv release.img releases/${DSTREAM_NAME}-${mix_version}-kvm.img
 
-    popd > /dev/null
-}
-
-main
+popd > /dev/null
