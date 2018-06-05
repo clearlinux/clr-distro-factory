@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Print extra information to stdout
-VERBOSE=${VERBOSE:-false}
-
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 PKG_LIST_FILE="custom-pkg-list"
