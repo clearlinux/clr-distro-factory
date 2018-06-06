@@ -20,14 +20,20 @@ var_load MIX_UP_VERSION
 var_load MIX_DOWN_VERSION
 
 calculate_diffs() {
-    # Collecting package data for old version
-    local packages_path=${STAGING_DIR}/update/${DS_LATEST}/custom-pkg-list
-    assert_file ${packages_path}
+    local packages_path
 
-    old_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
+    # Collecting package data for old version
+    if [[ -n ${DS_LATEST} ]]; then
+        packages_path=${STAGING_DIR}/update/${DS_LATEST}/${PKG_LIST_FILE}
+        assert_file ${packages_path}
+
+        old_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
+    else
+        old_package_list=""
+    fi
 
     # Collecting package data for new version
-    packages_path=${BUILD_DIR}/update/www/${MIX_VERSION}/custom-pkg-list
+    packages_path=${BUILD_DIR}/update/www/${MIX_VERSION}/${PKG_LIST_FILE}
     assert_file ${packages_path}
 
     new_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
@@ -52,6 +58,7 @@ calculate_diffs() {
     # calculate removed packages
     while read NO VO RO ; do
         found=false
+        [[ -z ${NO} ]] && continue
         while read NN VN RN ; do
             if [[ "${NO}" == "${NN}" ]] ; then
                 found=true
@@ -75,9 +82,15 @@ Release Notes for ${MIX_VERSION}
 DOWNSTREAM VERSION:
     ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${downstream_format})
 
-PREVIOUS VERSION:
-    ${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})
+EOL
 
+    if [[ -n ${DS_LATEST} ]]; then
+        log "PREVIOUS VERSION" \
+            "${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})" >> ${RELEASE_NOTES}
+        log_line >> ${RELEASE_NOTES}
+    fi
+
+    cat >> ${RELEASE_NOTES} << EOL
 ADDED PACKAGES:
 ${pkgs_added:-"    None"}
 
