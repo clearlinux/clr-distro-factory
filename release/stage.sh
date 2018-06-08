@@ -22,42 +22,56 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 . ./config/config.sh
 
-assert_dir ${STAGING_DIR}
-assert_dir ${BUILD_DIR}
-assert_dir ${BUILD_DIR}/git-bundles #FIXME Mixer 4.3.3 workaround
-assert_dir ${BUILD_DIR}/local-bundles
-
 var_load MIX_VERSION
 
-pushd ${BUILD_DIR} > /dev/null
+RELEASE_DIR="${WORK_DIR}/release"
 
-echo "=== STAGING MIX"
+stage "Staging Release"
+
+assert_dir ${BUILD_DIR}/git-bundles #FIXME Mixer 4.3.3 workaround
+assert_dir ${BUILD_DIR}/local-bundles
+assert_dir ${RELEASE_DIR}
+assert_dir ${STAGING_DIR}
+
+log_line "Finishing 'release' folder"
+mv ${WORK_DIR}/${BUILD_FILE} ${RELEASE_DIR}/${BUILD_FILE}-${MIX_VERSION}.txt
+mv ${WORK_DIR}/${PKG_LIST_FILE} ${RELEASE_DIR}/${PKG_LIST_FILE}-${MIX_VERSION}.txt
+mv ${WORK_DIR}/${RELEASE_NOTES} ${RELEASE_DIR}/${RELEASE_NOTES}-${MIX_VERSION}.txt
+cp -a ${BUILD_DIR}/Swupd_Root.pem ${RELEASE_DIR}/config/
+log_line "OK!" 1
+
+log_line "Staging 'update'"
 mkdir -p ${STAGING_DIR}/update/
-rsync -ah update/www/ ${STAGING_DIR}/update/
+rsync -ah ${BUILD_DIR}/update/www/ ${STAGING_DIR}/update/
+log_line "OK!" 1
 
-echo "== SETTING LATEST VERSION =="
-/usr/bin/cp -a update/latest ${STAGING_DIR}/
+log_line "Staging 'release'"
+mkdir -p ${STAGING_DIR}/releases/${MIX_VERSION}
+rsync -ah ${RELEASE_DIR}/ ${STAGING_DIR}/releases/${MIX_VERSION}/
+log_line "OK!" 1
 
-mkdir -p ${STAGING_DIR}/releases/
-rsync -ah releases/ ${STAGING_DIR}/releases/
-
+pushd ${STAGING_DIR} > /dev/null
+log_line "Updating 'latest' pointers"
+cp -a ${BUILD_DIR}/update/latest ./
+ln -sfT ./${MIX_VERSION} ./update/latest
+ln -sfT ./${MIX_VERSION} ./releases/latest
+ln -sfT ./releases/${MIX_VERSION}/images ./images
 popd > /dev/null
+log_line "OK!" 1
 
-cp -a ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${MIX_VERSION}.txt
-cp -a ${PKG_LIST_FILE} ${STAGING_DIR}/releases/${PKG_LIST_FILE}-${MIX_VERSION}.txt
-cp -a ${RELEASE_NOTES} ${STAGING_DIR}/releases/${RELEASE_NOTES}-${MIX_VERSION}.txt
-
-echo "== FIXING PERMISSIONS AND OWNERSHIP =="
+log_line "Fixing permissions and ownership"
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
+log_line "OK!" 1
 
-echo "== TAGGING =="
-echo "Workflow Configuration:"
+log_line
+section "Tagging Repositories"
+log_line "Workflow Configuration:"
 git -C config tag -f ${MIX_VERSION}
 git -C config push --quiet -f --tags origin
-echo "    Tag: ${MIX_VERSION}. OK!"
+log_line "Tag: ${MIX_VERSION}. OK!" 1
 
 mv -f ${BUILD_DIR}/git-bundles ${BUILD_DIR}/local-bundles/.git
-echo "Downstream Bundles Repository:"
+log_line "Downstream Bundles Repository:"
 git -C ${BUILD_DIR}/local-bundles tag -f ${NAMESPACE:-${DSTREAM_NAME}}-${MIX_VERSION}
 git -C ${BUILD_DIR}/local-bundles push --quiet -f --tags origin
-echo "    Tag: ${NAMESPACE:-${DSTREAM_NAME}}-${MIX_VERSION}. OK!"
+log_line "Tag: ${NAMESPACE:-${DSTREAM_NAME}}-${MIX_VERSION}. OK!" 1

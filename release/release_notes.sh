@@ -24,7 +24,7 @@ calculate_diffs() {
 
     # Collecting package data for old version
     if [[ -n ${DS_LATEST} ]]; then
-        packages_path=${STAGING_DIR}/releases/${PKG_LIST_FILE}-${DS_LATEST}.txt
+        packages_path=${STAGING_DIR}/releases/${DS_LATEST}/${PKG_LIST_FILE}-${DS_LATEST}.txt
         assert_file ${packages_path}
 
         old_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
@@ -104,6 +104,8 @@ ${pkgs_changed:-"    None"}
 EOL
 }
 
+pushd ${WORK_DIR} > /dev/null
 echo "Generating Release Notes"
 generate_release_notes
 echo "    Done!"
+popd > /dev/null

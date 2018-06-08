@@ -20,17 +20,22 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
-echo "=== Build Environment" > ${BUILD_FILE}
 echo "=== PROLOGUE"
-tee -a ${BUILD_FILE} <<EOL
-Workflow Repository:
-    $(git remote get-url origin) ($(git rev-parse --short HEAD))
-EOL
+log_line "Sanitizing work environment..."
 
-fetch_config_repo
+LOG_INDENT=1 fetch_config_repo
 . ./config/config.sh
 
-cat >> ${BUILD_FILE} <<EOL
+rm -rf ${WORK_DIR}
+mkdir -p ${WORK_DIR}/release/{config,images}
+mkdir -p ${BUILD_DIR}
+mkdir -p ${STAGING_DIR}
+log_line "OK!" 1
+
+echo "=== Build Environment" > ${WORK_DIR}/${BUILD_FILE}
+tee -a ${WORK_DIR}/${BUILD_FILE} <<EOL
+Workflow Repository:
+    $(git remote get-url origin) ($(git rev-parse --short HEAD))
 Workflow Config Repository:
     $(git -C config remote get-url origin) ($(git -C config rev-parse --short HEAD))
 
@@ -102,7 +107,7 @@ echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
 
 echo
 
-tee -a ${BUILD_FILE} <<EOL
+tee -a ${WORK_DIR}/${BUILD_FILE} <<EOL
 == TOOLS ==
 Clear Linux Version (on Builder):
     $(cat /usr/share/clear/version)
@@ -112,9 +117,4 @@ Swupd Version:
     $(swupd --version 2>&1 | head -1)
 
 EOL
-
-echo -n "Sanitizing work environment..."
-mkdir -p ${BUILD_DIR}
-mkdir -p ${STAGING_DIR}
-echo "OK!"
 echo "==="

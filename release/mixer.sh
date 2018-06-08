@@ -145,7 +145,6 @@ echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
 assert_dir ${BUILD_DIR}
 pushd ${BUILD_DIR} > /dev/null
 
-echo
 echo "Builder Conf file:"
 if [[ -f ${BUILD_DIR}/builder.conf ]]; then
     echo "    Reusing existing file"

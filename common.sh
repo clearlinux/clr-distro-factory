@@ -160,9 +160,10 @@ fetch_config_repo() {
     log_line "$(git remote get-url origin) ($(git rev-parse --short HEAD))" 1
     log_line "Checking for the required file..." 1
     assert_file ./config.sh
-    popd > /dev/null
     log_line "OK!" 2
-    echo
+    popd > /dev/null
+
+    log_line "Done!" 1
 }
 
 var_save() {

@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         NAMESPACE = "${JOB_NAME}"
-        WORK_DIR = "${WORKSPACE}"
+        WORK_DIR = "${WORKSPACE}/work"
     }
 
     stages {

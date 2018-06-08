@@ -23,6 +23,7 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 var_load MIX_VERSION
 
+IMGS_DIR="${WORK_DIR}/release/images"
 LOG_DIR="${WORK_DIR}/logs"
 PROCS_PER_IMG=8
 TEMPLATES_PATH=${TEMPLATES_PATH:-"${PWD}/config/images"}
@@ -33,14 +34,15 @@ create_image() {
     local tempdir=$(mktemp -d)
     local name=$(basename ${image%.json})
     local ister_log="${LOG_DIR}/ister-${name}.log"
+    local final_file="${IMGS_DIR}/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz"
 
     if [[ -z "${image}" || -z "${name}" ]]; then
         error "Image creation failed. Invalid input" "${1}"
         return 1
     fi
 
-    pushd ${BUILD_DIR} > /dev/null
-    sudo -E ister.py -s Swupd_Root.pem -L debug -S ${tempdir} \
+    pushd ${WORK_DIR} > /dev/null
+    sudo -E ister.py -s ${BUILD_DIR}/Swupd_Root.pem -L debug -S ${tempdir} \
         -C file://${BUILD_DIR}/update/www -V file://${BUILD_DIR}/update/www \
         -f ${format} -t ${image} > ${ister_log} 2>&1
     local ister_ret=$?
@@ -54,13 +56,16 @@ create_image() {
         return 1
     fi
 
-    xz -3 --stdout ${name}.img > releases/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz
+    xz -3 --stdout ${name}.img > ${final_file}
     sudo rm ${name}.img
 
-    if [[ ! -s "releases/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz" ]]; then
+    if [[ ! -s "${final_file}" ]]; then
         log "Image '${name}'" "Failed to create compressed file."
         return 1
     fi
+
+    # Only publish template files that successfully built an image
+    cp -a ${image} ${WORK_DIR}/release/config/
 
     popd > /dev/null
     log "Image '${name}'" "OK!"
@@ -94,8 +99,8 @@ if [[ -z "${format}" ]]; then
 fi
 
 mkdir -p ${LOG_DIR}
-mkdir -p ${BUILD_DIR}/releases
 
+export IMGS_DIR
 export LOG_DIR
 export MIX_VERSION
 export SCRIPT_DIR
