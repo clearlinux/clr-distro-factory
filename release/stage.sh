@@ -44,6 +44,7 @@ rsync -ah releases/ ${STAGING_DIR}/releases/
 popd > /dev/null
 
 cp -a ${BUILD_FILE} ${STAGING_DIR}/releases/${BUILD_FILE}-${MIX_VERSION}.txt
+cp -a ${PKG_LIST_FILE} ${STAGING_DIR}/releases/${PKG_LIST_FILE}-${MIX_VERSION}.txt
 cp -a ${RELEASE_NOTES} ${STAGING_DIR}/releases/${RELEASE_NOTES}-${MIX_VERSION}.txt
 
 echo "== FIXING PERMISSIONS AND OWNERSHIP =="

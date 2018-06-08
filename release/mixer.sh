@@ -54,12 +54,12 @@ download_mix_rpms() {
     echo "=== FETCHING CUSTOM PKG LIST"
     local result
     if result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG}); then
-        echo "${result}" | awk '{print $1}' > ${PKG_LIST_FILE}
+        echo "${result}" | awk '{print $1}' > ${WORK_DIR}/${PKG_LIST_FILE}
     else
         echo "[ERROR] Failed to get Mix packages!"
         exit 2
     fi
-    cat ${PKG_LIST_FILE}
+    cat ${WORK_DIR}/${PKG_LIST_FILE}
 
     echo ""
     echo "=== DOWNLOADING RPMS"
@@ -73,7 +73,7 @@ download_mix_rpms() {
     mkdir -p local-rpms
     pushd local-rpms > /dev/null
 
-    for rpm in $(cat ${BUILD_DIR}/${PKG_LIST_FILE}); do
+    for rpm in $(cat ${WORK_DIR}/${PKG_LIST_FILE}); do
         echo "--- ${rpm}"
         koji_cmd download-build -a x86_64 --quiet ${rpm}
     done
@@ -132,7 +132,6 @@ generate_mix() {
     fi
 
     echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
-    sudo -E cp -a ${PKG_LIST_FILE} update/www/${mix_ver}/
 }
 
 # ==============================================================================

@@ -24,7 +24,7 @@ calculate_diffs() {
 
     # Collecting package data for old version
     if [[ -n ${DS_LATEST} ]]; then
-        packages_path=${STAGING_DIR}/update/${DS_LATEST}/${PKG_LIST_FILE}
+        packages_path=${STAGING_DIR}/releases/${PKG_LIST_FILE}-${DS_LATEST}.txt
         assert_file ${packages_path}
 
         old_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
@@ -33,7 +33,7 @@ calculate_diffs() {
     fi
 
     # Collecting package data for new version
-    packages_path=${BUILD_DIR}/update/www/${MIX_VERSION}/${PKG_LIST_FILE}
+    packages_path=${WORK_DIR}/${PKG_LIST_FILE}
     if [[ -f ${packages_path} ]]; then
         new_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
     else
