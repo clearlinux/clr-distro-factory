@@ -34,9 +34,11 @@ calculate_diffs() {
 
     # Collecting package data for new version
     packages_path=${BUILD_DIR}/update/www/${MIX_VERSION}/${PKG_LIST_FILE}
-    assert_file ${packages_path}
-
-    new_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
+    if [[ -f ${packages_path} ]]; then
+        new_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' ${packages_path})
+    else
+        new_package_list=""
+    fi
 
     # calculate added & changed packages
     while read NN VN RN ; do
