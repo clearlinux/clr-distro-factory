@@ -98,10 +98,7 @@ var_save MIX_UP_VERSION
 var_save MIX_DOWN_VERSION
 
 echo "Next Downstream Version:"
-echo "    ${MIX_VERSION: : -3} ${MIX_VERSION: -3} (${DS_FORMAT})"
-
-echo "Current MIX:"
-echo "    ${MIX_VERSION}"
+echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
 
 echo
 
