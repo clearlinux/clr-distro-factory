@@ -180,7 +180,7 @@ var_load() {
     [[ -f ${VARS_DIR}/${1} ]] && declare -g ${1}="$(cat ${VARS_DIR}/${1})" || true
 }
 
-get_latest_versions() {
+get_upstream_version() {
     CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest) || true
     if [[ -z $CLR_LATEST ]]; then
         error "Failed to fetch Clear Linux latest version."
@@ -192,7 +192,9 @@ get_latest_versions() {
         error "Failed to fetch Clear Linux latest format."
         exit 2
     fi
+}
 
+get_downstream_version() {
     DS_LATEST=$(cat ${STAGING_DIR}/latest 2>/dev/null) || true
     if [[ -z $DS_LATEST ]]; then
         info "Failed to fetch Downstream latest version. First Mix?"
@@ -216,6 +218,11 @@ get_latest_versions() {
             exit 2
         fi
     fi
+}
+
+get_latest_versions() {
+    get_upstream_version
+    get_downstream_version
 }
 
 calc_mix_version() {
