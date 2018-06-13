@@ -1,0 +1,11 @@
+pipeline {
+    agent { label 'clr-builders' }
+
+    stages {
+        stage('Koji') {
+            steps {
+                sh 'koji/update_external_repo.sh'
+            }
+        }
+    }
+}
