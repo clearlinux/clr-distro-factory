@@ -56,9 +56,9 @@ fi
 ret=0
 TMP_PREV_LIST=$(mktemp)
 TMP_CURR_LIST=$(mktemp)
-PKG_LIST_PATH=${STAGING_DIR}/update/${DS_LATEST}/${PKG_LIST_FILE}
+PKG_LIST_PATH=${STAGING_DIR}/releases/${DS_LATEST}/${PKG_LIST_FILE}-${DS_LATEST}.txt
 
-if ! curl ${PKG_LIST_PATH} -o ${TMP_PREV_LIST}; then
+if ! cat ${PKG_LIST_PATH} > ${TMP_PREV_LIST}; then
     echo "Wrn: Failed to fetch Downstream PREVIOUS Package List. Assuming empty."
 fi
 

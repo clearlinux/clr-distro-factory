@@ -22,5 +22,5 @@ VARS_DIR="${WORK_DIR:-$PWD}/.vars"
 MIX_INCREMENT=${MIX_INCREMENT:-10}
 
 BUILD_FILE=build-env
-PKG_LIST_FILE=custom-pkg-list
+PKG_LIST_FILE=packages-nvr
 RELEASE_NOTES=release-notes
