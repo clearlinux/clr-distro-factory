@@ -36,45 +36,59 @@ var_load MIX_VERSION
 var_load MIX_UP_VERSION
 var_load MIX_DOWN_VERSION
 
-download_bundles() {
-    echo "Cloning Downstream Bundles:"
+fetch_bundles() {
+    log_line "Fetching downstream bundles:"
     rm -rf ./local-bundles
-
-    # Clone the Downstream Bundles repository
     git clone --quiet ${BUNDLES_REPO} local-bundles
+    log_line "OK!" 1
 }
 
-download_mix_rpms() {
-    echo ""
-    echo "=== FETCHING CUSTOM PKG LIST"
+fetch_koji_rpms() {
     local result
+
+    log_line "Fetching Package List:"
     if result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG}); then
-        echo "${result}" | awk '{print $1}' > ${WORK_DIR}/${PKG_LIST_FILE}
+        awk '{print $1}' <<< ${result} > ${WORK_DIR}/${PKG_LIST_FILE}
     else
-        echo "[ERROR] Failed to get Mix packages!"
-        exit 2
+        log_line "No custom content was found." 1
+        return 1
     fi
-    cat ${WORK_DIR}/${PKG_LIST_FILE}
+    log_line "OK!" 1
 
-    echo ""
-    echo "=== DOWNLOADING RPMS"
-
-    # Remove any existing RPM directory as it may contain
-    # RPMs which are no longer tagged from a previous download
+    section "Downloading RPMs"
     rm -rf local-rpms
     rm -rf local-yum
 
     mkdir -p local-yum
     mkdir -p local-rpms
+
     pushd local-rpms > /dev/null
-
     for rpm in $(cat ${WORK_DIR}/${PKG_LIST_FILE}); do
-        echo "--- ${rpm}"
+        log_line "${rpm}:"
         koji_cmd download-build -a x86_64 --quiet ${rpm}
+        log_line "OK!" 1
     done
-
-    # Change back to previous working directory
     popd > /dev/null
+}
+
+update_bundles() {
+    log_line "Updating Bundles List:"
+    # Clean bundles file, otherwise mixer will use the outdated list
+    # and cause an error if bundles happen to be deleted
+    rm -f ./mixbundles
+
+    log_line
+    # Add the upstream Bundle definitions for this base version of ClearLinux
+    mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
+
+    # Add the downstream Bundle definitions
+    mixer bundle add ${DS_BUNDLES:-"--all-local"}
+    log_line
+
+    log_line "Building Bundles:"
+    log_line
+    sudo -E mixer --new-config build bundles
+    log_line
 }
 
 generate_mix() {
@@ -83,29 +97,11 @@ generate_mix() {
     local bump_format=$(( "$3" + 0 ))
     local bump_ver=$(( "$4" + 0 ))
 
-    echo
-    echo "=== GENERATING MIX"
-
-    # Clean bundles file, otherwise mixer will use the outdated list
-    # and cause an error if bundles happen to be deleted
-    rm -f ./mixbundles
-
     # Ensure the Upstream and Mix versions are set
     mixer versions update --clear-version ${clear_ver} --mix-version ${mix_ver}
 
-    # Add the upstream Bundle definitions for this base version of ClearLinux
-    mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
-
-    # Add the downstream Bundle definitions
-    mixer bundle add ${DS_BUNDLES:-"--all-local"}
-
-    echo ""
-    echo "Adding RPMs ..."
-    mixer add-rpms
-
-    echo ""
-    echo "Creating chroots ..."
-    sudo -E mixer build bundles
+    section "Bundles"
+    update_bundles
 
     if [[ "${bump_format}" -gt 0 ]]; then
         echo ""
@@ -116,14 +112,14 @@ generate_mix() {
             tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
     fi
 
-    echo ""
-    echo "Building update ..."
+    section "'Update' Content"
     sudo -E mixer build update
 
+    section "Deltas"
     if [[ -n "${DS_LATEST}" ]]; then
-        echo
-        echo "Generating upgrade packs ..."
         sudo -E mixer build delta-packs --from ${DS_LATEST} --to ${mix_ver}
+    else
+        log "Skipping Delta Packs creation" "No previous version was found."
     fi
 
     echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
@@ -146,15 +142,16 @@ mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
 mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
 mixer config set Swupd.FORMAT "${DS_FORMAT}"
 
-download_mix_rpms # Pull down the RPMs from Downstream Koji
-
-download_bundles # Download the Downstream Bundles Repository
-
+log_line "Looking for previous releases:"
 if [[ -z ${DS_LATEST} ]]; then
-    # This is our First Mix!
+    log_line "None found. This will be the first Mix!" 1
     DS_UP_FORMAT=${CLR_FORMAT}
     DS_UP_VERSION=${CLR_LATEST}
 fi
+
+section "Preparing Downstream Content"
+fetch_bundles # Download the Downstream Bundles Repository
+fetch_koji_rpms && mixer add-rpms || true
 
 format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
 if (( ${format_bumps} )); then
@@ -209,6 +206,5 @@ for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
     generate_mix "${up_next_first_ver}" "${next_mix_ver}"
 done
 
-generate_mix "${CLR_LATEST}" "${MIX_VERSION}"
-
+LOG_INDENT=1 generate_mix "${CLR_LATEST}" "${MIX_VERSION}"
 popd > /dev/null
