@@ -83,9 +83,11 @@ build_bundles() {
 }
 
 build_update() {
+    local mix_ver="$1"
+
     section "'Update' Content"
     if ${MIN_VERSION:-false}; then
-        sudo -E mixer --native build update --min-version=${MIX_VERSION}
+        sudo -E mixer --native build update --min-version=${mix_ver}
     else
         sudo -E mixer --native build update
     fi
@@ -132,7 +134,7 @@ generate_mix() {
             tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
     fi
 
-    build_update
+    build_update ${mix_ver}
 
     build_deltas ${mix_ver}
 
@@ -170,59 +172,64 @@ fetch_koji_rpms && mixer add-rpms || true
 
 section "Building"
 format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
-if (( ${format_bumps} )); then
-    echo "=== NEED TO BUMP FORMAT"
-    echo "Which is broken right now, aborting!"
-    exit 1
-fi
+(( ${format_bumps} )) && info "Format Bumps will be needed"
+
 for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
+    stage "Format Bump: $(( ${bump}++ )) of ${format_bumps}"
+
     ds_format=$(( ${DS_FORMAT} + ${bump} ))
-    up_prev_format=$(( ${DS_UP_FORMAT} + ${bump}))
-    declare up_prev_latest_ver
-    declare up_next_first_ver
+    ds_format_next=$(( ${ds_format}++ ))
+    log "Downstream Format" "From: ${ds_format} To: ${ds_format_next}"
 
-    # First, we may need to generate a Mix based on the latest upstream
-    # release for the previous upstream Format.
-    { # Get the latest version for Upstream format
-        up_prev_latest_ver=$(curl --silent --fail ${CLR_PUBLIC_DL_URL}/update/version/format${up_prev_format}/latest)
-    } || { # Failed
-        echo "Failed to get latest version for Upstream format ${up_prev_format}!"
+    up_format=$(( ${DS_UP_FORMAT} + ${bump} ))
+    up_format_next=$(( ${up_format}++ ))
+    log "Upstream Format" "From: ${up_format} To: ${up_format_next}"
+
+    # Get the First version for Upstream Next Format
+    up_version_next=$(curl ${CLR_PUBLIC_DL_URL}/update/version/format${up_format_next}/first) || true
+    if [[ -z ${up_version_next} ]]; then
+        error "Failed to get First version for Upstream Format: ${up_format_next}!"
         exit 2
-    }
-
-    declare step_mix_ver
-    if [ "${DS_UP_VERSION}" -lt "${up_prev_latest_ver}" ]; then
-        step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} ))
-    else
-        # We built a Mix based on the last version of a format, without bumping
-        step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} + ${MIX_INCREMENT} ))
     fi
+    ds_version_next=$(( ${up_version_next} * 1000 + ${MIX_INCREMENT} * 2 )) # Calculate the matching Downstream version
 
-    next_mix_format=$(( ${ds_format} + 1 ))
-    { # Get the first version for Upstream next format
-        up_next_format=$(( ${up_prev_format} + 1 ))
-        up_next_first_ver=$(curl --silent --fail ${CLR_PUBLIC_DL_URL}/update/version/format${up_next_format}/first)
-    } || { # Failed
-        echo "Failed to get first version for Upstream format ${up_next_format}!"
+    # Get the Latest version for Upstream "current" Format
+    up_version=$(curl ${CLR_PUBLIC_DL_URL}/update/version/format${up_format}/latest) || true
+    if [[ -z ${up_version} ]]; then
+        error "Failed to get Latest version for Upstream Format: ${up_format}."
         exit 2
-    }
-    next_mix_ver=$(( ${up_next_first_ver} * 1000 + ${MIX_INCREMENT} ))
+    fi
+    ds_version=$(( ${up_version} * 1000 + ${MIX_INCREMENT} )) # Calculate the matching Downstream version
 
-    # Generate a Mix based on the FIRST release for the new Format
-    echo
-    echo "=== GENERATING INTERMEDIATE MIX ${step_mix_ver}"
-    LOG_INDENT=1 generate_mix "${up_prev_latest_ver}" "${step_mix_ver}" "${ds_format}" ${next_mix_format} ${next_mix_ver}
+    # ===========
+    # Ghost Mix
+    # ===========
+    log "Ghost Mix:" "${ds_version} (${ds_format}) based on: ${up_version} (${up_format})"
+    MIN_VERSION=true LOG_INDENT=1 generate_mix "${up_version}" "${ds_version}" "${ds_format}" "${ds_version_next}" "${ds_format_next}"
 
-    echo
-    echo "=== GENERATING INTERMEDIATE MIX ${next_mix_ver}"
-    LOG_INDENT=1 generate_mix "${up_next_first_ver}" "${next_mix_ver}" "${next_mix_format}"
-
+    # ===========
+    # Regular Mix
+    # ===========
+    log "Regular Mix:" "${ds_version_next} (${ds_format_next}) based on: ${up_version_next} (${up_format_next})"
+    MIN_VERSION=true LOG_INDENT=1 generate_mix "${up_version_next}" "${ds_version_next}" "${ds_format_next}"
 done
 
-if [[ -n "${ds_format}" ]]; then
-    DS_FORMAT=${ds_format}
+if [[ -n "${ds_format_next}" ]]; then
+    DS_FORMAT=${ds_format_next}
     var_save DS_FORMAT
 fi
 
-LOG_INDENT=1 generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
+# Check if a final mix is required
+if [[ -z "${ds_version_next}" || "${MIX_VERSION}" -gt "${ds_version_next}" ]]; then
+    LOG_INDENT=1 generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
+else
+    MIX_VERSION=${ds_version_next}
+    MIX_UP_VERSION=${MIX_VERSION: : -3}
+    MIX_DOWN_VERSION=${MIX_VERSION: -3}
+
+    var_save MIX_VERSION
+    var_save MIX_UP_VERSION
+    var_save MIX_DOWN_VERSION
+fi
+
 popd > /dev/null
