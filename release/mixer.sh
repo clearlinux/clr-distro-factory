@@ -91,7 +91,7 @@ generate_mix() {
     rm -f ./mixbundles
 
     # Ensure the Upstream and Mix versions are set
-    mixer init --clear-version ${clear_ver} --mix-version ${mix_ver}
+    mixer versions update --clear-version ${clear_ver} --mix-version ${mix_ver}
 
     # Add the upstream Bundle definitions for this base version of ClearLinux
     mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
@@ -140,19 +140,11 @@ echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
 assert_dir ${BUILD_DIR}
 pushd ${BUILD_DIR} > /dev/null
 
-echo "Builder Conf file:"
-if [[ -f ${BUILD_DIR}/builder.conf ]]; then
-    echo "    Reusing existing file"
-else
-    echo "    Generating new file"
-
-    # Write the configuration file based on the template.
-    sed -e "s#\${BUILD_DIR}#${BUILD_DIR}#" \
-        -e "s#\${DSTREAM_DL_URL}#${DSTREAM_DL_URL}#" \
-        ${SCRIPT_DIR}/builder.conf.in > ${BUILD_DIR}/builder.conf
-fi
-echo "Builder Conf Contents:"
-cat ${BUILD_DIR}/builder.conf
+section "Bootstrapping Mix Workspace"
+mixer init --local-rpms
+mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
+mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
+mixer config set Swupd.FORMAT "${DS_FORMAT}"
 
 download_mix_rpms # Pull down the RPMs from Downstream Koji
 
