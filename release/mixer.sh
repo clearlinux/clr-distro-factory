@@ -42,11 +42,6 @@ download_bundles() {
 
     # Clone the Downstream Bundles repository
     git clone --quiet ${BUNDLES_REPO} local-bundles
-
-    # FIXME Mixer 4.3.3 bug
-    # Ensure only the bundles definitions are on this directory
-    rm -rf ./git-bundles
-    mv -f local-bundles/.git ./git-bundles
 }
 
 download_mix_rpms() {

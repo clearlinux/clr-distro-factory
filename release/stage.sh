@@ -28,7 +28,6 @@ RELEASE_DIR="${WORK_DIR}/release"
 
 stage "Staging Release"
 
-assert_dir ${BUILD_DIR}/git-bundles #FIXME Mixer 4.3.3 workaround
 assert_dir ${BUILD_DIR}/local-bundles
 assert_dir ${RELEASE_DIR}
 assert_dir ${STAGING_DIR}
@@ -69,7 +68,6 @@ git -C config tag -f ${MIX_VERSION}
 git -C config push --quiet -f --tags origin
 log_line "Tag: ${MIX_VERSION}. OK!" 1
 
-mv -f ${BUILD_DIR}/git-bundles ${BUILD_DIR}/local-bundles/.git
 log_line "Downstream Bundles Repository:"
 git -C ${BUILD_DIR}/local-bundles tag -f ${NAMESPACE:-${DSTREAM_NAME}}-${MIX_VERSION}
 git -C ${BUILD_DIR}/local-bundles push --quiet -f --tags origin
