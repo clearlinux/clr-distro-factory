@@ -11,16 +11,10 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 
 REMOTE_PATH=${PUBLISHING_HOST}:${PUBLISHING_ROOT}/${NAMESPACE:-${DSTREAM_NAME}}
 
-cat <<EOL
-=== PUBLISH
-From:
-    ${STAGING_DIR}
-To:
-    ${REMOTE_PATH}
+stage "PUBLISH"
+log "From" "${STAGING_DIR}"
+log "To" "${REMOTE_PATH}"
 
-== Syncing Content ==
-
-EOL
-
+section "Syncing Content"
 assert_dir ${STAGING_DIR}
 rsync -vrlHpt --safe-links --delete --exclude '*.src.rpm' -e ssh ${STAGING_DIR}/ ${REMOTE_PATH}

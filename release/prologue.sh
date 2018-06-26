@@ -20,7 +20,7 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 . ${SCRIPT_DIR}/../globals.sh
 . ${SCRIPT_DIR}/../common.sh
 
-echo "=== PROLOGUE"
+stage "PROLOGUE"
 log_line "Sanitizing work environment..."
 
 LOG_INDENT=1 fetch_config_repo
@@ -71,10 +71,9 @@ Build dir:
     ${BUILD_DIR}
 Stage dir:
     ${STAGING_DIR}
-
 EOL
 
-echo "== Versions =="
+section "Versions"
 get_latest_versions
 var_save CLR_FORMAT
 var_save CLR_LATEST
@@ -117,4 +116,3 @@ Swupd Version:
     $(swupd --version 2>&1 | head -1)
 
 EOL
-echo "==="

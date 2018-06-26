@@ -49,10 +49,10 @@ log() {
 
 stage() {
     log_line "=== ${1^^}"
-    log_line
 }
 
 section() {
+    log_line
     log_line "== ${1} =="
 }
 

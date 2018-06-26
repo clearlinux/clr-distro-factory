@@ -63,7 +63,6 @@ log_line "Fixing permissions and ownership"
 sudo -E /usr/bin/chown -R ${USER}:httpd ${STAGING_DIR}
 log_line "OK!" 1
 
-log_line
 section "Tagging Repositories"
 log_line "Workflow Configuration:"
 git -C config tag -f ${MIX_VERSION}
