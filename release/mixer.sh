@@ -87,7 +87,7 @@ update_bundles() {
 
     log_line "Building Bundles:"
     log_line
-    sudo -E mixer --new-config build bundles
+    sudo -E mixer --native build bundles
     log_line
 }
 
@@ -113,11 +113,11 @@ generate_mix() {
     fi
 
     section "'Update' Content"
-    sudo -E mixer build update
+    sudo -E mixer --native build update
 
     section "Deltas"
     if [[ -n "${DS_LATEST}" ]]; then
-        sudo -E mixer build delta-packs --from ${DS_LATEST} --to ${mix_ver}
+        sudo -E mixer --native build delta-packs --from ${DS_LATEST} --to ${mix_ver}
     else
         log "Skipping Delta Packs creation" "No previous version was found."
     fi
@@ -140,7 +140,7 @@ section "Bootstrapping Mix Workspace"
 mixer init --local-rpms
 mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
 mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
-mixer config set Swupd.FORMAT "${DS_FORMAT}"
+sed -i -E -e "s/(FORMAT = )(.*)/\1\"${DS_FORMAT}\"/" mixer.state
 
 log_line "Looking for previous releases:"
 if [[ -z ${DS_LATEST} ]]; then
