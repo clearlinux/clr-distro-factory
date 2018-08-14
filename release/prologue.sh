@@ -16,7 +16,7 @@ LOG_INDENT=1 fetch_config_repo
 . ./config/config.sh
 
 rm -rf ${WORK_DIR}
-mkdir -p ${WORK_DIR}/release/{config,images}
+mkdir -p ${WORK_DIR}/release/{config,images,rpms}
 mkdir -p ${BUILD_DIR}
 mkdir -p ${STAGING_DIR}
 log_line "OK!" 1
