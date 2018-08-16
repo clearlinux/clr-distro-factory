@@ -4,6 +4,7 @@
 
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
 # DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
+# MIN_VERSION: If this build should be a min version
 
 set -e
 
@@ -102,7 +103,11 @@ generate_mix() {
     fi
 
     section "'Update' Content"
-    sudo -E mixer --native build update
+    if ${MIN_VERSION:-false}; then
+        sudo -E mixer --native build update --min-version=${MIX_VERSION}
+    else
+        sudo -E mixer --native build update
+    fi
 
     section "Deltas"
     if [[ -n "${DS_LATEST}" ]]; then
