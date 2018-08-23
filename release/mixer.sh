@@ -150,6 +150,8 @@ fetch_koji_rpms && mixer add-rpms || true
 format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
 if (( ${format_bumps} )); then
     echo "=== NEED TO BUMP FORMAT"
+    echo "Which is broken right now, aborting!"
+    exit 1
 fi
 for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
     up_prev_format=$(( ${DS_UP_FORMAT} + ${bump}))
