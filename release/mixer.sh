@@ -61,7 +61,8 @@ fetch_koji_rpms() {
     popd > /dev/null
 }
 
-update_bundles() {
+build_bundles() {
+    section "Bundles"
     log_line "Updating Bundles List:"
     # Clean bundles file, otherwise mixer will use the outdated list
     # and cause an error if bundles happen to be deleted
@@ -81,33 +82,17 @@ update_bundles() {
     log_line
 }
 
-generate_mix() {
-    local clear_ver="$1"
-    local mix_ver="$2"
-    local bump_format=$(( "$3" + 0 ))
-    local bump_ver=$(( "$4" + 0 ))
-
-    # Ensure the Upstream and Mix versions are set
-    mixer versions update --clear-version ${clear_ver} --mix-version ${mix_ver}
-
-    section "Bundles"
-    update_bundles
-
-    if [[ "${bump_format}" -gt 0 ]]; then
-        echo ""
-        echo "*** BUMP: Forcing the image version ahead to ${bump_ver}:${bump_format} ..."
-        echo -n ${bump_format} | sudo -E \
-            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
-        echo -n ${bump_ver} | sudo -E \
-            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
-    fi
-
+build_update() {
     section "'Update' Content"
     if ${MIN_VERSION:-false}; then
         sudo -E mixer --native build update --min-version=${MIX_VERSION}
     else
         sudo -E mixer --native build update
     fi
+}
+
+build_deltas() {
+    local mix_ver="$1"
 
     section "Deltas"
     if [[ -n "${DS_LATEST}" ]]; then
@@ -115,8 +100,45 @@ generate_mix() {
     else
         log "Skipping Delta Packs creation" "No previous version was found."
     fi
+}
 
-    echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
+generate_mix() {
+    if (( $# != 3 && $# != 5 )); then
+        error "'generate_mix' requires either 3 or 5 arguments!"
+        return 1
+    fi
+
+    local clear_ver="$1"
+    local mix_ver="$2"
+    local mix_format="$3"
+
+    # Set the Mix Format
+    sed -i -E -e "s/(FORMAT = )(.*)/\1\"${mix_format}\"/" mixer.state
+
+    # Set Upstream and Mix versions
+    mixer versions update --clear-version ${clear_ver} --mix-version ${mix_ver}
+
+    build_bundles
+
+    if (( $# == 5 )); then
+        # This is a ghost mix!
+        local fake_ver="$4"
+        local fake_format="$5"
+
+        # Fake version and format
+        echo -n ${fake_ver} | sudo -E \
+            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
+        echo -n ${fake_format} | sudo -E \
+            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
+    fi
+
+    build_update
+
+    build_deltas ${mix_ver}
+
+    if (( $# != 5 )); then
+        echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
+    fi
 }
 
 # ==============================================================================
@@ -134,7 +156,6 @@ section "Bootstrapping Mix Workspace"
 mixer init --local-rpms
 mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
 mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
-sed -i -E -e "s/(FORMAT = )(.*)/\1\"${DS_FORMAT}\"/" mixer.state
 
 log_line "Looking for previous releases:"
 if [[ -z ${DS_LATEST} ]]; then
@@ -147,6 +168,7 @@ section "Preparing Downstream Content"
 fetch_bundles # Download the Downstream Bundles Repository
 fetch_koji_rpms && mixer add-rpms || true
 
+section "Building"
 format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
 if (( ${format_bumps} )); then
     echo "=== NEED TO BUMP FORMAT"
@@ -154,6 +176,7 @@ if (( ${format_bumps} )); then
     exit 1
 fi
 for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
+    ds_format=$(( ${DS_FORMAT} + ${bump} ))
     up_prev_format=$(( ${DS_UP_FORMAT} + ${bump}))
     declare up_prev_latest_ver
     declare up_next_first_ver
@@ -175,7 +198,7 @@ for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
         step_mix_ver=$(( ${up_prev_latest_ver} * 1000 + ${MIX_INCREMENT} + ${MIX_INCREMENT} ))
     fi
 
-    next_mix_format=$(( ${DS_FORMAT} + 1 ))
+    next_mix_format=$(( ${ds_format} + 1 ))
     { # Get the first version for Upstream next format
         up_next_format=$(( ${up_prev_format} + 1 ))
         up_next_first_ver=$(curl --silent --fail ${CLR_PUBLIC_DL_URL}/update/version/format${up_next_format}/first)
@@ -188,19 +211,18 @@ for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
     # Generate a Mix based on the FIRST release for the new Format
     echo
     echo "=== GENERATING INTERMEDIATE MIX ${step_mix_ver}"
-    generate_mix "${up_prev_latest_ver}" "${step_mix_ver}" ${next_mix_format} ${next_mix_ver}
-
-    # Bump the Mix Format
-    # Modify the "builder.conf" with the new format
-    # TODO: Need to check-in to git
-    # TODO: Sed in place
-    sed -r 's/^(FORMAT=)([0-9]+)(.*)/echo "\1$((\2+1))\3"/ge' ${BUILD_DIR}/builder.conf > ${BUILD_DIR}/builder.conf.new
-    mv ${BUILD_DIR}/builder.conf.new ${BUILD_DIR}/builder.conf
+    LOG_INDENT=1 generate_mix "${up_prev_latest_ver}" "${step_mix_ver}" "${ds_format}" ${next_mix_format} ${next_mix_ver}
 
     echo
     echo "=== GENERATING INTERMEDIATE MIX ${next_mix_ver}"
-    generate_mix "${up_next_first_ver}" "${next_mix_ver}"
+    LOG_INDENT=1 generate_mix "${up_next_first_ver}" "${next_mix_ver}" "${next_mix_format}"
+
 done
 
-LOG_INDENT=1 generate_mix "${CLR_LATEST}" "${MIX_VERSION}"
+if [[ -n "${ds_format}" ]]; then
+    DS_FORMAT=${ds_format}
+    var_save DS_FORMAT
+fi
+
+LOG_INDENT=1 generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
 popd > /dev/null
