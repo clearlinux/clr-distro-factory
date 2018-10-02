@@ -12,6 +12,11 @@ pipeline {
                 sh 'release/prologue.sh'
             }
         }
+        stage('Setup Content') {
+            steps {
+                sh 'release/koji.sh'
+            }
+        }
         stage('Create Update Stream') {
             steps {
                 sh 'release/mixer.sh'

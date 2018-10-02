@@ -17,7 +17,11 @@ LOG_INDENT=1 fetch_config_repo
 
 rm -rf ${WORK_DIR}
 mkdir -p ${WORK_DIR}/release/{config,images,rpms}
+
 mkdir -p ${BUILD_DIR}
+rm -rf ${BUILD_DIR}/local-rpms ${BUILD_DIR}/local-yum
+mkdir -p ${BUILD_DIR}/local-rpms ${BUILD_DIR}/local-yum
+
 mkdir -p ${STAGING_DIR}
 log_line "OK!" 1
 

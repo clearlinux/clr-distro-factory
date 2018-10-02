@@ -33,34 +33,6 @@ fetch_bundles() {
     log_line "OK!" 1
 }
 
-fetch_koji_rpms() {
-    local result
-
-    log_line "Fetching Package List:"
-    if result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG}); then
-        awk '{print $1}' <<< ${result} > ${WORK_DIR}/${PKG_LIST_FILE}
-    else
-        log_line "No custom content was found." 1
-        return 1
-    fi
-    log_line "OK!" 1
-
-    section "Downloading RPMs"
-    rm -rf local-rpms
-    rm -rf local-yum
-
-    mkdir -p local-yum
-    mkdir -p local-rpms
-
-    pushd local-rpms > /dev/null
-    for rpm in $(cat ${WORK_DIR}/${PKG_LIST_FILE}); do
-        log_line "${rpm}:"
-        koji_cmd download-build -a x86_64 --quiet ${rpm}
-        log_line "OK!" 1
-    done
-    popd > /dev/null
-}
-
 build_bundles() {
     section "Bundles"
     log_line "Updating Bundles List:"
@@ -168,7 +140,10 @@ fi
 
 section "Preparing Downstream Content"
 fetch_bundles # Download the Downstream Bundles Repository
-fetch_koji_rpms && mixer add-rpms || true
+
+if [[ -n "$(ls -A local-rpms)" ]];then
+    mixer add-rpms
+fi
 
 section "Building"
 format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
