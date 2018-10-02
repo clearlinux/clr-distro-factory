@@ -5,8 +5,10 @@
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 
-# Variables Cache
+# Workspace
 VARS_DIR="${WORK_DIR:-$PWD}/.vars"
+REPO_DIR="${WORK_DIR:-$PWD}/repo"
+PKGS_DIR="${REPO_DIR}/x86_64/os/packages"
 
 MIX_INCREMENT=${MIX_INCREMENT:-10}
 

@@ -14,22 +14,16 @@ SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 # ==============================================================================
 # MAIN
 # ==============================================================================
-stage "Content Provider - Koji"
+stage "Finalizing Content"
 
-log_line "Fetching Package List:"
-if result=$(koji_cmd list-tagged --latest --quiet ${KOJI_TAG}); then
-    awk '{print $1}' <<< ${result} > ${WORK_DIR}/${PKG_LIST_FILE}
-else
-    log_line "No custom content was found." 1
+if [[ -z "$(ls -A ${PKGS_DIR})" ]]; then
+    info "Custom Content Not Found" " '${PKGS_DIR}' is empty."
     exit 0
 fi
-log_line "OK!" 1
 
-section "Downloading RPMs"
+section "Creating Content Repository"
 pushd ${PKGS_DIR} > /dev/null
-for rpm in $(cat ${WORK_DIR}/${PKG_LIST_FILE}); do
-    log_line "${rpm}:"
-    koji_cmd download-build -a x86_64 --quiet ${rpm}
-    log_line "OK!" 1
-done
+log_line
+createrepo_c ${PKGS_DIR} # Output too verbose
+log_line
 popd > /dev/null

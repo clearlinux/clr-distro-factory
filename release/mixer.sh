@@ -123,11 +123,10 @@ echo
 echo "MIX_INCREMENT=${MIX_INCREMENT}"
 echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
 
-assert_dir ${BUILD_DIR}
 pushd ${BUILD_DIR} > /dev/null
 
 section "Bootstrapping Mix Workspace"
-mixer init --local-rpms --upstream-url ${CLR_PUBLIC_DL_URL}
+mixer init --upstream-url ${CLR_PUBLIC_DL_URL}
 mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
 mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
 
@@ -141,8 +140,12 @@ fi
 section "Preparing Downstream Content"
 fetch_bundles # Download the Downstream Bundles Repository
 
-if [[ -n "$(ls -A local-rpms)" ]];then
-    mixer add-rpms
+log_line "Checking Downstream Repo:"
+if [[ -n "$(ls -A ${PKGS_DIR})" ]];then
+    mixer repo set-url content file://${PKGS_DIR} > /dev/null
+    log_line "Content found. Adding it to the mix!" 1
+else
+    log_line "Content not found. Skipping it." 1
 fi
 
 section "Building"

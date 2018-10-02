@@ -18,7 +18,7 @@ RELEASE_DIR="${WORK_DIR}/release"
 stage "Staging Release"
 
 assert_dir ${BUILD_DIR}/local-bundles
-assert_dir ${BUILD_DIR}/local-rpms
+assert_dir ${REPO_DIR}
 assert_dir ${RELEASE_DIR}
 assert_dir ${STAGING_DIR}
 
@@ -26,8 +26,8 @@ log_line "Finishing 'release' folder"
 mv ${WORK_DIR}/${BUILD_FILE} ${RELEASE_DIR}/${BUILD_FILE}-${MIX_VERSION}.txt
 mv ${WORK_DIR}/${PKG_LIST_FILE} ${RELEASE_DIR}/${PKG_LIST_FILE}-${MIX_VERSION}.txt
 mv ${WORK_DIR}/${RELEASE_NOTES} ${RELEASE_DIR}/${RELEASE_NOTES}-${MIX_VERSION}.txt
+mv ${REPO_DIR}/ ${RELEASE_DIR}/repo/
 cp -a ${BUILD_DIR}/Swupd_Root.pem ${RELEASE_DIR}/config/
-rsync -ah ${BUILD_DIR}/local-rpms/ ${RELEASE_DIR}/rpms/
 log_line "OK!" 1
 
 log_line "Staging 'update'"

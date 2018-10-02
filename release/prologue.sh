@@ -16,7 +16,8 @@ LOG_INDENT=1 fetch_config_repo
 . ./config/config.sh
 
 rm -rf ${WORK_DIR}
-mkdir -p ${WORK_DIR}/release/{config,images,rpms}
+mkdir -p ${WORK_DIR}/release/{config,images}
+mkdir -p ${PKGS_DIR}
 
 mkdir -p ${BUILD_DIR}
 rm -rf ${BUILD_DIR}/local-rpms ${BUILD_DIR}/local-yum
@@ -60,6 +61,10 @@ Work dir:
     ${WORK_DIR}
 Variables dir:
     ${VARS_DIR}
+Repository dir:
+    ${REPO_DIR}
+Packages dir:
+    ${PKGS_DIR}
 Build dir:
     ${BUILD_DIR}
 Stage dir:
