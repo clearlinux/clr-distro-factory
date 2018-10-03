@@ -21,6 +21,11 @@ if [[ -z "$(ls -A ${PKGS_DIR})" ]]; then
     exit 0
 fi
 
+log_line "Building package list:"
+# If no content providers fetched packages, this will act as 'touch'
+cat ${WORK_DIR}/${PKG_LIST_TMP}* > ${WORK_DIR}/${PKG_LIST_FILE} 2>/dev/null || true
+log_line "OK!" 1
+
 section "Creating Content Repository"
 pushd ${PKGS_DIR} > /dev/null
 log_line
