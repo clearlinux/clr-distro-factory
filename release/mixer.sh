@@ -155,7 +155,7 @@ assert_dir ${BUILD_DIR}
 pushd ${BUILD_DIR} > /dev/null
 
 section "Bootstrapping Mix Workspace"
-mixer init --local-rpms
+mixer init --local-rpms --upstream-url ${CLR_PUBLIC_DL_URL}
 mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
 mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
 
