@@ -201,7 +201,7 @@ get_downstream_version() {
     DS_LATEST=$(cat ${STAGING_DIR}/latest 2>/dev/null) || true
     if [[ -z $DS_LATEST ]]; then
         info "Failed to fetch Downstream latest version. First Mix?"
-        DS_FORMAT=1
+        DS_FORMAT=${CLR_FORMAT:-1}
     elif ((${#DS_LATEST} < 4)); then
         error "Downstream Clear Linux version number seems corrupted."
         exit 2
