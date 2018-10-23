@@ -57,7 +57,7 @@ build_bundles() {
 build_update() {
     local mix_ver="$1"
 
-    section "'Update' Content"
+    section "Build 'Update' Content"
     if ${MIN_VERSION:-false}; then
         sudo -E mixer --native build update --min-version=${mix_ver}
     else
@@ -76,9 +76,79 @@ build_deltas() {
     fi
 }
 
+generate_bump() {
+    if (($# != 6 )); then
+        error "'generate_format_bump' requires 6 arguments!"
+        return 1
+    fi
+
+    local clear_ver="$1"
+    local mix_ver="$2"
+    local mix_format="$3"
+    local clear_ver_next="$4"
+    local mix_ver_next="$5"
+    local mix_format_next="$6"
+
+    # Ghost Build (+10)
+    # Set the Mix Format
+    section "Building +10"
+    sed -i -E -e "s/(FORMAT = )(.*)/\1\"${mix_format}\"/" mixer.state
+
+    # Set Upstream and Mix versions
+    mixer versions update --clear-version ${clear_ver} --mix-version ${mix_ver}
+
+    build_bundles
+
+    # Delete deprecated bundles
+    section "Bundle Deletion"
+    for i in $(grep -lir "\[STATUS\]: Deprecated" upstream-bundles/ local-bundles/); do
+        b=$(basename $i)
+        log "Deleting" "${b}"
+        sudo -E rm -f update/image/${mix_ver}/${b}-info
+        sudo -E mkdir -p update/image/${mix_ver}/${b}
+    done # TODO
+
+    # Fake version and format
+    sudo -E sed -i -E -e "s/(VERSION_ID=)(.*)/\1\"${mix_ver_next}\"/" \
+        ${BUILD_DIR}/update/image/${mix_ver}/full/usr/lib/os-release
+    echo -n ${mix_ver_next} | sudo -E \
+        tee ${BUILD_DIR}/update/image/${mix_ver}/full/usr/share/clear/version > /dev/null
+    echo -n ${mix_format_next} | sudo -E \
+        tee ${BUILD_DIR}/update/image/${mix_ver}/full/usr/share/defaults/swupd/format > /dev/null
+
+    build_update ${mix_ver}
+
+    build_deltas ${mix_ver}
+
+    # Bumped Build (+20)
+    # Set the Mix Format
+    section "Building +20"
+    sed -i -E -e "s/(FORMAT = )(.*)/\1\"${mix_format_next}\"/" mixer.state
+
+    # Set Upstream and Mix versions
+    mixer versions update --clear-version ${clear_ver_next} --mix-version ${mix_ver_next} --offline
+
+    # Delete deprecated bundles again
+    section "Bundle Deletion"
+    for i in $(grep -lir "\[STATUS\]: Deprecated" upstream-bundles/ local-bundles/); do
+        b=$(basename $i)
+        log "Deleting" "${b}"
+        mixer bundle remove ${b}
+        sudo -E sed -i -E -e "/\[${b}\]/d;/group=${b}/d" ${BUILD_DIR}/update/groups.ini
+    done #TODO: Maybe also delete from bundles repository?
+
+    # "build bundles"
+    section "Fake Build Bundles"
+    sudo -E cp -al ${BUILD_DIR}/update/image/${mix_ver} ${BUILD_DIR}/update/image/${mix_ver_next}
+
+    MIN_VERSION=true build_update ${mix_ver_next}
+
+    echo -n ${mix_ver_next} | sudo -E tee update/latest > /dev/null
+}
+
 generate_mix() {
-    if (( $# != 3 && $# != 5 )); then
-        error "'generate_mix' requires either 3 or 5 arguments!"
+    if (( $# != 3 )); then
+        error "'generate_mix' (regular build) requires 3 arguments!"
         return 1
     fi
 
@@ -94,35 +164,17 @@ generate_mix() {
 
     build_bundles
 
-    if (( $# == 5 )); then
-        # This is a ghost mix!
-        local fake_ver="$4"
-        local fake_format="$5"
-
-        # Fake version and format
-        echo -n ${fake_ver} | sudo -E \
-            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
-        echo -n ${fake_format} | sudo -E \
-            tee "$BUILD_DIR/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
-    fi
-
     build_update ${mix_ver}
 
     build_deltas ${mix_ver}
 
-    if (( $# != 5 )); then
-        echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
-    fi
+    echo -n ${mix_ver} | sudo -E tee update/latest > /dev/null
 }
 
 # ==============================================================================
 # MAIN
 # ==============================================================================
-echo "=== STARTING MIXING"
-echo
-echo "MIX_INCREMENT=${MIX_INCREMENT}"
-echo "CLR_BUNDLES=${CLR_BUNDLES:-"all from upstream"}"
-
+stage Mixer
 pushd ${BUILD_DIR} > /dev/null
 
 section "Bootstrapping Mix Workspace"
@@ -151,57 +203,53 @@ fi
 section "Building"
 format_bumps=$(( ${CLR_FORMAT} - ${DS_UP_FORMAT} ))
 (( ${format_bumps} )) && info "Format Bumps will be needed"
+#TODO: Check for required mixer version for the bump here
 
 for (( bump=0 ; bump < ${format_bumps} ; bump++ )); do
-    stage "Format Bump: $(( ${bump}++ )) of ${format_bumps}"
+    section "Format Bump: $(( ${bump} + 1 )) of ${format_bumps}"
 
-    ds_format=$(( ${DS_FORMAT} + ${bump} ))
-    ds_format_next=$(( ${ds_format}++ ))
-    log "Downstream Format" "From: ${ds_format} To: ${ds_format_next}"
+    ds_fmt=$(( ${DS_FORMAT} + ${bump} ))
+    ds_fmt_next=$(( ${ds_fmt} + 1 ))
+    log "Downstream Format" "From: ${ds_fmt} To: ${ds_fmt_next}"
 
-    up_format=$(( ${DS_UP_FORMAT} + ${bump} ))
-    up_format_next=$(( ${up_format}++ ))
-    log "Upstream Format" "From: ${up_format} To: ${up_format_next}"
+    up_fmt=$(( ${DS_UP_FORMAT} + ${bump} ))
+    up_fmt_next=$(( ${up_fmt} + 1 ))
+    log "Upstream Format" "From: ${up_fmt} To: ${up_fmt_next}"
 
     # Get the First version for Upstream Next Format
-    up_version_next=$(curl ${CLR_PUBLIC_DL_URL}/update/version/format${up_format_next}/first) || true
-    if [[ -z ${up_version_next} ]]; then
-        error "Failed to get First version for Upstream Format: ${up_format_next}!"
+    up_ver_next=$(curl ${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt_next}/first) || true
+    if [[ -z ${up_ver_next} ]]; then
+        error "Failed to get First version for Upstream Format: ${up_fmt_next}!"
         exit 2
     fi
-    ds_version_next=$(( ${up_version_next} * 1000 + ${MIX_INCREMENT} * 2 )) # Calculate the matching Downstream version
+    # Calculate the matching Downstream version
+    ds_ver_next=$(( ${up_ver_next} * 1000 + ${MIX_INCREMENT} * 2 ))
 
     # Get the Latest version for Upstream "current" Format
-    up_version=$(curl ${CLR_PUBLIC_DL_URL}/update/version/format${up_format}/latest) || true
-    if [[ -z ${up_version} ]]; then
-        error "Failed to get Latest version for Upstream Format: ${up_format}."
+    up_ver=$(curl ${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt}/latest) || true
+    if [[ -z ${up_ver} ]]; then
+        error "Failed to get Latest version for Upstream Format: ${up_fmt}."
         exit 2
     fi
-    ds_version=$(( ${up_version} * 1000 + ${MIX_INCREMENT} )) # Calculate the matching Downstream version
+    # Calculate the matching Downstream version
+    ds_ver=$(( ${up_ver} * 1000 + ${MIX_INCREMENT} ))
 
-    # ===========
-    # Ghost Mix
-    # ===========
-    log "Ghost Mix:" "${ds_version} (${ds_format}) based on: ${up_version} (${up_format})"
-    MIN_VERSION=true LOG_INDENT=1 generate_mix "${up_version}" "${ds_version}" "${ds_format}" "${ds_version_next}" "${ds_format_next}"
-
-    # ===========
-    # Regular Mix
-    # ===========
-    log "Regular Mix:" "${ds_version_next} (${ds_format_next}) based on: ${up_version_next} (${up_format_next})"
-    MIN_VERSION=true LOG_INDENT=1 generate_mix "${up_version_next}" "${ds_version_next}" "${ds_format_next}"
+    log "+10 Mix:" "${ds_ver} (${ds_fmt}) based on: ${up_ver} (${up_fmt})"
+    log "+20 Mix:" "${ds_ver_next} (${ds_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
+    generate_bump "${up_ver}" "${ds_ver}" "${ds_fmt}" "${up_ver_next}" "${ds_ver_next}" "${ds_fmt_next}"
 done
 
-if [[ -n "${ds_format_next}" ]]; then
-    DS_FORMAT=${ds_format_next}
+if [[ -n "${ds_fmt_next}" ]]; then
+    DS_FORMAT=${ds_fmt_next}
     var_save DS_FORMAT
 fi
 
-# Check if a final mix is required
-if [[ -z "${ds_version_next}" || "${MIX_VERSION}" -gt "${ds_version_next}" ]]; then
-    LOG_INDENT=1 generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
+if [[ -z "${ds_ver_next}" || "${MIX_VERSION}" -gt "${ds_ver_next}" ]]; then
+    log_line
+    log "Regular Mix:" "${MIX_VERSION} (${DS_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
+    generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
 else
-    MIX_VERSION=${ds_version_next}
+    MIX_VERSION=${ds_ver_next}
     MIX_UP_VERSION=${MIX_VERSION: : -3}
     MIX_DOWN_VERSION=${MIX_VERSION: -3}
 
