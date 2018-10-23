@@ -2,6 +2,10 @@
 # Copyright (C) 2018 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# CLR_LATEST: Mix against a specific Upstream version instead of latest
+# CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
+# DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
+# MIN_VERSION: If this build should be a min version
 set -e
 
 SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))

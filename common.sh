@@ -184,7 +184,7 @@ var_load() {
 }
 
 get_upstream_version() {
-    CLR_LATEST=$(curl ${CLR_PUBLIC_DL_URL}/latest) || true
+    CLR_LATEST=${CLR_LATEST:-$(curl ${CLR_PUBLIC_DL_URL}/latest)} || true
     if [[ -z $CLR_LATEST ]]; then
         error "Failed to fetch Clear Linux latest version."
         exit 2
