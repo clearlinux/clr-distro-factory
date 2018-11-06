@@ -27,8 +27,6 @@ if [[ -z "$(ls -A ${PKGS_DIR})" ]]; then
     exit 0
 fi
 
-pushd ${PKGS_DIR} > /dev/null
 log_line # Output too verbose
-createrepo_c ${PKGS_DIR} # TODO: log create_repo output and only print its result
+createrepo_c ${REPO_DIR}/x86_64/os # TODO: log create_repo output and only print its result
 log_line
-popd > /dev/null
