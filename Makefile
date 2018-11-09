@@ -1,10 +1,21 @@
-STEPS := $(patsubst %.sh,%,$(notdir $(wildcard $(CURDIR)/release/*.sh)))
-
 HOSTNAME := $(shell hostname -f)
-
 BUILD_DIR ?= $(CURDIR)/tmp/build
 STAGING_DIR ?= $(CURDIR)/tmp/release
 DSTREAM_DL_URL ?= http://${HOSTNAME}:8000/update
+
+pipelines := common koji release watcher
+
+common_SRC := $(wildcard *.sh)
+
+koji_SRC := $(wildcard $(CURDIR)/koji/*.sh)
+
+release_SRC := $(wildcard $(CURDIR)/release/*.sh)
+
+watcher_SRC := $(wildcard $(CURDIR)/watcher/*.sh)
+
+SRC := $(common_SRC) $(koji_SRC) $(release_SRC) $(watcher_SRC)
+
+release_STEPS := $(patsubst %.sh,%,$(release_SRC))
 
 all:
 	@echo "use 'make release' to run all steps'"
@@ -17,8 +28,8 @@ ${BUILD_DIR}:
 ${STAGING_DIR}:
 	mkdir -p $@
 
-.PHONY: $(STEPS)
-$(STEPS): ${BUILD_DIR} ${STAGING_DIR}
+.PHONY: $(release_STEPS)
+$(release_STEPS): ${BUILD_DIR} ${STAGING_DIR}
 	BUILD_DIR=${BUILD_DIR} \
 	STAGING_DIR=${STAGING_DIR} \
 	DSTREAM_DL_URL=${DSTREAM_DL_URL} \
@@ -30,3 +41,10 @@ release: prologue koji content mixer images stage
 .PHONY: serve
 serve: ${STAGING_DIR}
 	cd ${STAGING_DIR}; python -mSimpleHTTPServer
+
+check_PIPELINES = $(addprefix check-,$(pipelines))
+$(check_PIPELINES): pipe = $(patsubst check-%,%,$@)
+$(check_PIPELINES):
+	shellcheck $($(pipe)_CHECKOPTS) $($(pipe)_SRC)
+
+check: $(check_PIPELINES)
