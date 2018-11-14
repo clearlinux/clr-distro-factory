@@ -4,9 +4,10 @@
 
 set -e
 
-SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
+SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
-. ${SCRIPT_DIR}/../common.sh
+# shellcheck source=common.sh
+. "${SCRIPT_DIR}/../common.sh"
 . ./config/config.sh
 
 REMOTE_PATH=${PUBLISHING_HOST}:${PUBLISHING_ROOT}/${NAMESPACE:-${DSTREAM_NAME}}
@@ -16,5 +17,5 @@ log "From" "${STAGING_DIR}"
 log "To" "${REMOTE_PATH}"
 
 section "Syncing Content"
-assert_dir ${STAGING_DIR}
-rsync -vrlHpt --safe-links --delete --exclude '*.src.rpm' -e ssh ${STAGING_DIR}/ ${REMOTE_PATH}
+assert_dir "${STAGING_DIR}"
+rsync -vrlHpt --safe-links --delete --exclude '*.src.rpm' -e ssh "${STAGING_DIR}/" "${REMOTE_PATH}"

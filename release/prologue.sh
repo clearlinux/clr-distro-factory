@@ -6,12 +6,16 @@
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
 # DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
 # MIN_VERSION: If this build should be a min version
+
+# shellcheck source=globals.sh
+# shellcheck source=common.sh
+
 set -e
 
-SCRIPT_DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
+SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
-. ${SCRIPT_DIR}/../globals.sh
-. ${SCRIPT_DIR}/../common.sh
+. "${SCRIPT_DIR}/../globals.sh"
+. "${SCRIPT_DIR}/../common.sh"
 
 stage "PROLOGUE"
 log_line "Sanitizing work environment..."
@@ -19,19 +23,19 @@ log_line "Sanitizing work environment..."
 LOG_INDENT=1 fetch_config_repo
 . ./config/config.sh
 
-rm -rf ${WORK_DIR}
-mkdir -p ${WORK_DIR}/release/{config,images}
-mkdir -p ${PKGS_DIR}
+rm -rf "${WORK_DIR}"
+mkdir -p "${WORK_DIR}"/release/{config,images}
+mkdir -p "${PKGS_DIR}"
 
-mkdir -p ${BUILD_DIR}
-rm -rf ${BUILD_DIR}/local-rpms ${BUILD_DIR}/local-yum
-mkdir -p ${BUILD_DIR}/local-rpms ${BUILD_DIR}/local-yum
+mkdir -p "${BUILD_DIR}"
+rm -rf "${BUILD_DIR}/local-rpms" "${BUILD_DIR}/local-yum"
+mkdir -p "${BUILD_DIR}/local-rpms" "${BUILD_DIR}/local-yum"
 
-mkdir -p ${STAGING_DIR}
+mkdir -p "${STAGING_DIR}"
 log_line "OK!" 1
 
-echo "=== Build Environment" > ${WORK_DIR}/${BUILD_FILE}
-tee -a ${WORK_DIR}/${BUILD_FILE} <<EOL
+echo "=== Build Environment" > "${WORK_DIR}/${BUILD_FILE}"
+tee -a "${WORK_DIR}/${BUILD_FILE}" <<EOL
 Workflow Repository:
     $(git remote get-url origin) ($(git rev-parse --short HEAD))
 Workflow Config Repository:
@@ -114,7 +118,7 @@ fi
 
 echo
 
-tee -a ${WORK_DIR}/${BUILD_FILE} <<EOL
+tee -a "${WORK_DIR}/${BUILD_FILE}" <<EOL
 == TOOLS ==
 Clear Linux Version (on Builder):
     $(cat /usr/share/clear/version)

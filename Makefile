@@ -5,10 +5,12 @@ DSTREAM_DL_URL ?= http://${HOSTNAME}:8000/update
 
 pipelines := common koji release watcher
 
+common_CHECKOPTS := --exclude=2034,2164
 common_SRC := $(wildcard *.sh)
 
 koji_SRC := $(wildcard $(CURDIR)/koji/*.sh)
 
+release_CHECKOPTS := --exclude=2013,2024,2155
 release_SRC := $(wildcard $(CURDIR)/release/*.sh)
 
 watcher_SRC := $(wildcard $(CURDIR)/watcher/*.sh)
@@ -45,6 +47,6 @@ serve: ${STAGING_DIR}
 check_PIPELINES = $(addprefix check-,$(pipelines))
 $(check_PIPELINES): pipe = $(patsubst check-%,%,$@)
 $(check_PIPELINES):
-	shellcheck $($(pipe)_CHECKOPTS) $($(pipe)_SRC)
+	shellcheck -x $($(pipe)_CHECKOPTS) $($(pipe)_SRC)
 
 check: $(check_PIPELINES)
