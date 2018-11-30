@@ -16,3 +16,4 @@ BUILD_FILE=build-env
 PKG_LIST_FILE=packages-nvr
 PKG_LIST_TMP=packages_
 RELEASE_NOTES=release-notes
+BUNDLES_FILE=bundles-def
