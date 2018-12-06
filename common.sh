@@ -120,7 +120,7 @@ assert_file() {
 }
 
 silentkill () {
-    if [ ! -z "$2" ]; then
+    if [ -n "$2" ]; then
         kill "$2" "$1" > /dev/null 2>&1 || true
     else
         kill -KILL "$1" > /dev/null 2>&1 || true
