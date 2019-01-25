@@ -56,10 +56,6 @@ create_image() {
         return 1
     fi
 
-    # Only publish template files that successfully built an image
-    mkdir -p "${WORK_DIR}/release/config/images/"
-    cp -a "${image}" "${WORK_DIR}/release/config/images/"
-
     popd > /dev/null
     log "Image '${name}'" "OK!"
 }

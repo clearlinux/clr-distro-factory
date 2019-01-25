@@ -41,6 +41,9 @@ cp -a "${BUILD_DIR}/Swupd_Root.pem" "${release_dir}/config/"
 git -C "${bundles_dir}" archive --format='tar.gz' --prefix='bundles/' \
     -o "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" HEAD > /dev/null 2>&1
 tar xf "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" -C "${release_dir}/config/"
+if [[ -d "${SCRIPT_DIR}/../config/images" ]]; then
+    cp -a "${SCRIPT_DIR}/../config/images" "${release_dir}/config/"
+fi
 log_line "OK!" 1
 
 log_line "Staging 'update'"
