@@ -18,3 +18,6 @@ Please, follow the coding style described [here](https://github.com/clearlinux/c
 
  # Have a Security Issue?
  Please go to https://01.org/security to report any security issues or concerns.
+
+---
+*Other names and brands may be claimed as the property of others.
