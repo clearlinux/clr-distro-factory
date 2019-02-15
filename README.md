@@ -2,7 +2,7 @@
 'DevOps' tools for maintaining a 'Downstream Clear'.
 
 # General Information
-Clear Linux Distro Factory host the tools necessary to continuously run the
+Clear Linux Distro Factory hosts the tools necessary to continuously run the
 operations required for build and publish releases of a Clear based OS.
 
 A Downstream Clear is an independent OS that follows the Clear Linux Architecture
