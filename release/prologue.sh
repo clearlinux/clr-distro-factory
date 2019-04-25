@@ -118,6 +118,9 @@ fi
 
 echo
 
+assert_dep mixer
+assert_dep swupd
+
 tee -a "${WORK_DIR}/${BUILD_FILE}" <<EOL
 == TOOLS ==
 Clear Linux Version (on Builder):
