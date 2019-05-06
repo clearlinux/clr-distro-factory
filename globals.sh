@@ -13,7 +13,8 @@ PKGS_DIR="${REPO_DIR}/x86_64/os/packages"
 MIX_INCREMENT=${MIX_INCREMENT:-10}
 
 BUILD_FILE=build-env
+BUNDLES_FILE=bundles-def
+MCA_FILE=mca-report
 PKG_LIST_FILE=packages-nvr
 PKG_LIST_TMP=packages_
 RELEASE_NOTES=release-notes
-BUNDLES_FILE=bundles-def
