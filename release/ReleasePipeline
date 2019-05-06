@@ -21,6 +21,7 @@ pipeline {
         stage('Create Update Stream') {
             steps {
                 sh 'release/mixer.sh'
+                sh 'release/mca-check.sh'
             }
         }
         stage('Create Images') {

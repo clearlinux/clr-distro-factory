@@ -199,6 +199,8 @@ if [[ -z ${DS_LATEST} ]]; then
     var_save DS_UP_VERSION
 fi
 
+MCA_VERSIONS="${DS_LATEST}"
+
 section "Preparing Downstream Content"
 fetch_bundles # Download the Downstream Bundles Repository
 
@@ -247,6 +249,8 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
     log "+10 Mix:" "${ds_ver} (${ds_fmt}) based on: ${up_ver} (${up_fmt})"
     log "+20 Mix:" "${ds_ver_next} (${ds_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
     generate_bump "${up_ver}" "${ds_ver}" "${ds_fmt}" "${up_ver_next}" "${ds_ver_next}" "${ds_fmt_next}"
+
+    MCA_VERSIONS+=" ${ds_ver} ${ds_ver_next}"
 done
 
 if [[ -n "${ds_fmt_next}" ]]; then
@@ -258,6 +262,8 @@ if [[ -z "${ds_ver_next}" || "${MIX_VERSION}" -gt "${ds_ver_next}" ]]; then
     log_line
     log "Regular Mix:" "${MIX_VERSION} (${DS_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
     generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
+
+    MCA_VERSIONS+=" ${MIX_VERSION}"
 else
     MIX_VERSION=${ds_ver_next}
     # shellcheck disable=SC2034
@@ -269,5 +275,7 @@ else
     var_save MIX_UP_VERSION
     var_save MIX_DOWN_VERSION
 fi
+
+var_save MCA_VERSIONS
 
 popd > /dev/null

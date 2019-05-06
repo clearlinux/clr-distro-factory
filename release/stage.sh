@@ -36,6 +36,8 @@ log_line "Finishing 'release' folder"
 mv "${WORK_DIR}/${BUILD_FILE}" "${release_dir}/${BUILD_FILE}-${MIX_VERSION}.txt"
 mv "${WORK_DIR}/${PKG_LIST_FILE}" "${release_dir}/${PKG_LIST_FILE}-${MIX_VERSION}.txt"
 mv "${WORK_DIR}/${RELEASE_NOTES}" "${release_dir}/${RELEASE_NOTES}-${MIX_VERSION}.txt"
+mv "${WORK_DIR}/${MCA_FILE}-"*.txt "${release_dir}/" || true # prevents failure when no MCA logs exist.
+
 mv "${REPO_DIR}/" "${release_dir}/repo/"
 cp -a "${BUILD_DIR}/Swupd_Root.pem" "${release_dir}/config/"
 git -C "${bundles_dir}" archive --format='tar.gz' --prefix='bundles/' \
