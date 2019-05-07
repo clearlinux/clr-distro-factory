@@ -17,11 +17,11 @@ watcher_SRC := $(wildcard $(CURDIR)/watcher/*.sh)
 
 SRC := $(common_SRC) $(koji_SRC) $(release_SRC) $(watcher_SRC)
 
-release_STEPS := $(patsubst %.sh,%,$(release_SRC))
+release_STEPS := $(patsubst %.sh,%,$(notdir $(release_SRC)))
 
 all:
 	@echo "use 'make release' to run all steps'"
-	@echo "use 'make STEP' to run individual steps: ${STEPS}"
+	@echo "use 'make STEP' to run individual steps: ${release_STEPS}"
 	@echo "use 'make serve' to run a webserver hosting updates"
 
 ${BUILD_DIR}:
