@@ -184,7 +184,7 @@ stage Mixer
 pushd "${BUILD_DIR}" > /dev/null
 
 section "Bootstrapping Mix Workspace"
-mixer init --upstream-url "${CLR_PUBLIC_DL_URL}"
+mixer init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version ${CLR_LATEST}
 mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
 mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
 
