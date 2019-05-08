@@ -38,7 +38,7 @@ $(release_STEPS): ${BUILD_DIR} ${STAGING_DIR}
 	release/$@.sh
 
 .NOTPARALLEL: release
-release: prologue koji content mixer images stage
+release: prologue local_pkg content mixer images release_notes stage
 
 .PHONY: serve
 serve: ${STAGING_DIR}
