@@ -34,7 +34,7 @@ create_image() {
     fi
 
     pushd "${WORK_DIR}" > /dev/null
-    sudo -E ister.py -s "${BUILD_DIR}/Swupd_Root.pem" -L debug -S "${tempdir}" \
+    sudo -E ister.py -s "${BUILD_DIR}/Swupd_Root.pem" -L debug -F \
         -C "file://${BUILD_DIR}/update/www" -V "file://${BUILD_DIR}/update/www" \
         -f "${format}" -t "${image}" > "${ister_log}" 2>&1
     local ister_ret=$?
