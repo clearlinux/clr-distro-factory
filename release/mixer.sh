@@ -65,9 +65,9 @@ build_update() {
 
     section "Build 'Update' Content"
     if ${MIN_VERSION:-false}; then
-        sudo -E mixer --native build update --min-version="${mix_ver}"
+        sudo -E mixer --native build update --skip-format-check --min-version="${mix_ver}"
     else
-        sudo -E mixer --native build update
+        sudo -E mixer --native build update --skip-format-check
     fi
 }
 
@@ -101,7 +101,7 @@ generate_bump() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}"
+    mixer versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
 
     build_bundles
 
@@ -132,7 +132,7 @@ generate_bump() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format_next}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer versions update --clear-version "${clear_ver_next}" --mix-version "${mix_ver_next}" --offline
+    mixer versions update --clear-version "${clear_ver_next}" --mix-version "${mix_ver_next}" --offline --skip-format-check
 
     # Delete deprecated bundles again
     section "Bundle Deletion"
@@ -166,7 +166,7 @@ generate_mix() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}"
+    mixer versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
 
     build_bundles
 
