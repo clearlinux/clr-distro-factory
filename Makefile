@@ -44,9 +44,10 @@ release: prologue koji content mixer images stage
 serve: ${STAGING_DIR}
 	cd ${STAGING_DIR}; python -mSimpleHTTPServer
 
+check_CHECKOPTS := --exclude=1091
 check_PIPELINES = $(addprefix check-,$(pipelines))
 $(check_PIPELINES): pipe = $(patsubst check-%,%,$@)
 $(check_PIPELINES):
-	shellcheck -x $($(pipe)_CHECKOPTS) $($(pipe)_SRC)
+	shellcheck -x $(check_CHECKOPTS) $($(pipe)_CHECKOPTS) $($(pipe)_SRC)
 
 check: $(check_PIPELINES)
