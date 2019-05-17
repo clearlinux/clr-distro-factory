@@ -2,14 +2,12 @@
 # Copyright (C) 2018 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-# shellcheck source=globals.sh
 # shellcheck source=common.sh
 
 set -e
 
 SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
-. "${SCRIPT_DIR}/../globals.sh"
 . "${SCRIPT_DIR}/../common.sh"
 
 . ./config/config.sh

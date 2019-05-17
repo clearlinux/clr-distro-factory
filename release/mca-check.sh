@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Copyright (C) 2018 Intel Corporation
 
-# shellcheck source=globals.sh
 # shellcheck source=common.sh
 
 # MCA_VERSIONS: Space separated list of versions that MCA will execute.
@@ -13,7 +12,6 @@ set -o pipefail
 
 SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
-. "${SCRIPT_DIR}/../globals.sh"
 . "${SCRIPT_DIR}/../common.sh"
 
 . ./config/config.sh

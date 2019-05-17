@@ -7,14 +7,12 @@
 # DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
 # MIN_VERSION: If this build should be a min version
 
-# shellcheck source=globals.sh
 # shellcheck source=common.sh
 
 set -e
 
 SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
-. "${SCRIPT_DIR}/../globals.sh"
 . "${SCRIPT_DIR}/../common.sh"
 
 stage "PROLOGUE"
