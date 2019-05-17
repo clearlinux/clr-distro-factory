@@ -17,16 +17,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 . ./config/config.sh
 
-var_load CLR_FORMAT
-var_load CLR_LATEST
-var_load DS_DOWN_VERSION
-var_load DS_FORMAT
-var_load DS_LATEST
-var_load DS_UP_FORMAT
-var_load DS_UP_VERSION
-var_load MIX_VERSION
-var_load MIX_UP_VERSION
-var_load MIX_DOWN_VERSION
+var_load_all
 
 fetch_bundles() {
     log_line "Fetching downstream bundles:"

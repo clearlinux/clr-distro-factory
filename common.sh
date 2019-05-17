@@ -4,12 +4,13 @@
 
 # shellcheck source=globals.sh
 # shellcheck source=logging.sh
+# shellcheck source=variables.sh
 
 LIB_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")") # Do not override SCRIPT_DIR
 
 . "${LIB_DIR}/globals.sh"
 . "${LIB_DIR}/logging.sh"
-
+. "${LIB_DIR}/variables.sh"
 
 curl() {
     command curl --silent --fail "$@"
@@ -77,35 +78,6 @@ fetch_config_repo() {
     popd > /dev/null
 
     log_line "Done!" 1
-}
-
-var_save() {
-    local VARS_DIR=${VARS_DIR:?"VARS_DIR Cannot be Null/Unset"}
-
-    if (( $# != 1 )); then
-        error "'var_save' requires a single argument!"
-        return 1
-    fi
-
-    # "unsave"
-    if [[ ! -v ${1} ]]; then
-        rm -f "${VARS_DIR}/${1}"
-        return 0
-    fi
-
-    [[ -d ${VARS_DIR} ]] || mkdir -p "${VARS_DIR}"
-
-    echo "${!1}" > "${VARS_DIR}/${1}"
-}
-
-var_load() {
-    if (( $# != 1 )); then
-        error "'var_load' requires a single argument!"
-        return 1
-    fi
-
-    # shellcheck disable=2015
-    [[ -f ${VARS_DIR}/${1} ]] && declare -g "${1}"="$(cat "${VARS_DIR}/${1}")" || true
 }
 
 get_upstream_version() {
