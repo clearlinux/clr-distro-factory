@@ -12,26 +12,6 @@ LIB_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")") # Do not override SCRIPT_DI
 . "${LIB_DIR}/logging.sh"
 . "${LIB_DIR}/variables.sh"
 
-curl() {
-    command curl --silent --fail "$@"
-}
-
-koji_cmd() {
-    # Downloads fail sometime, try harder!
-    local result=""
-    local ret=1
-    for (( i=0; i < 10; i++ )); do
-        result=$(koji "${@}" 2> /dev/null) \
-            || continue
-
-        ret=0
-        break
-    done
-
-    [[ -n ${result} ]] && echo "${result}"
-    return ${ret}
-}
-
 assert_dep () {
     command -v "$1" > /dev/null 2>&1 || { error "command '$1' not found"; exit 1; }
 }
@@ -82,13 +62,13 @@ fetch_config_repo() {
 
 get_upstream_version() {
     CLR_LATEST=${CLR_LATEST:-$(curl "${CLR_PUBLIC_DL_URL}/latest")} || true
-    if [[ -z $CLR_LATEST ]]; then
+    if [[ -z "${CLR_LATEST}" ]]; then
         error "Failed to fetch Clear Linux latest version."
         exit 2
     fi
 
     CLR_FORMAT=$(curl "${CLR_PUBLIC_DL_URL}/update/${CLR_LATEST}/format") || true
-    if [[ -z $CLR_FORMAT ]]; then
+    if [[ -z "${CLR_FORMAT}" ]]; then
         error "Failed to fetch Clear Linux latest format."
         exit 2
     fi
@@ -96,24 +76,24 @@ get_upstream_version() {
 
 get_downstream_version() {
     DS_LATEST=$(cat "${STAGING_DIR}/latest" 2>/dev/null) || true
-    if [[ -z $DS_LATEST ]]; then
+    if [[ -z "${DS_LATEST}" ]]; then
         info "Failed to fetch Downstream latest version. First Mix?"
-        DS_FORMAT=${CLR_FORMAT:-1}
+        DS_FORMAT="${CLR_FORMAT:-1}"
     elif ((${#DS_LATEST} < 4)); then
         error "Downstream Clear Linux version number seems corrupted."
         exit 2
     else
         DS_FORMAT=$(cat "${STAGING_DIR}/update/${DS_LATEST}/format" 2>/dev/null) || true
-        if [[ -z $DS_FORMAT ]]; then
+        if [[ -z "${DS_FORMAT}" ]]; then
             error "Failed to fetch Downstream latest format."
             exit 2
         fi
 
-        DS_UP_VERSION=${DS_LATEST: : -3}
-        DS_DOWN_VERSION=${DS_LATEST: -3}
+        DS_UP_VERSION="${DS_LATEST: : -3}"
+        DS_DOWN_VERSION="${DS_LATEST: -3}"
 
         DS_UP_FORMAT=$(curl "${CLR_PUBLIC_DL_URL}/update/${DS_UP_VERSION}/format") || true
-        if [[ -z $DS_UP_FORMAT ]]; then
+        if [[ -z "${DS_UP_FORMAT}" ]]; then
             error "Failed to fetch Downstream latest base format."
             exit 2
         fi
@@ -127,11 +107,11 @@ get_latest_versions() {
 
 calc_mix_version() {
     # Compute initial next version (ignoring the need for format bumps)
-    if [[ -z ${DS_LATEST} || ${CLR_LATEST} -gt ${DS_UP_VERSION} ]]; then
+    if [[ -z "${DS_LATEST}" || "${CLR_LATEST}" -gt "${DS_UP_VERSION}" ]]; then
         MIX_VERSION=$((CLR_LATEST * 1000 + MIX_INCREMENT))
-    elif [[ ${CLR_LATEST} -eq ${DS_UP_VERSION} ]]; then
+    elif [[ "${CLR_LATEST}" -eq "${DS_UP_VERSION}" ]]; then
         MIX_VERSION=$((DS_LATEST + MIX_INCREMENT))
-        if [[ ${MIX_VERSION: -3} -eq 000 ]]; then
+        if [[ "${MIX_VERSION: -3}" -eq 000 ]]; then
             error "Invalid Mix Version" \
                 "No more Downstream versions available for this Upstream version!"
             exit 1
@@ -142,6 +122,30 @@ calc_mix_version() {
         exit 1
     fi
 
-    MIX_UP_VERSION=${MIX_VERSION: : -3}
-    MIX_DOWN_VERSION=${MIX_VERSION: -3}
+    MIX_UP_VERSION="${MIX_VERSION: : -3}"
+    MIX_DOWN_VERSION="${MIX_VERSION: -3}"
+}
+
+# =================
+# Command Overrides
+# =================
+
+curl() {
+    command curl --silent --fail "$@"
+}
+
+koji_cmd() {
+    # Downloads fail sometime, try harder!
+    local result=""
+    local ret=1
+    for (( i=0; i < 10; i++ )); do
+        result=$(koji "${@}" 2> /dev/null) \
+            || continue
+
+        ret=0
+        break
+    done
+
+    [[ -n "${result}" ]] && echo "${result}"
+    return ${ret}
 }
