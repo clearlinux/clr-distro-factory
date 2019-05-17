@@ -11,6 +11,7 @@
 #
 # To be used with 'run_and_log':
 # LOG_DIR    = Directory where log files are saved. Default = '${WORK_DIR}/logs'
+# LOG_NAME   = Prefix used for the log file name.
 # LOG_METHOD = One of the following logging alternatives:
 #              0 - Log to file (Default)
 #              1 - Log to file and std{out,err}
@@ -60,29 +61,30 @@ warn() {
 }
 
 run_and_log() {
-    if (( $# != 2 )); then
-        error "'run_and_log' requires exactly 2 arguments!"
+    if (( ${#} == 0 )); then
+        error "'run_and_log' requires a command!"
         return 1
     fi
 
-    local cmd=${1}
-    local log_out="${2}.log"
-    local log_err="${2}_err.log"
-    local log_dir=${LOG_DIR:-"./logs"}
+    mkdir -p "${LOG_DIR}"
 
-    mkdir -p "${log_dir}"
+    local log_base="${LOG_DIR}/${LOG_NAME:-${1}}"
 
     # Log to file
     if [[ "${LOG_METHOD}" -eq 0 ]]; then
-        ${cmd} > "${log_dir}/${log_out}" 2> "${log_dir}/${log_err}" &
-    # Log to file and stdout
+        # shellcheck disable=2068
+        ${@} > "${log_base}.log" 2> "${log_base}_err.log"
+    # Log to file and stdout/stderr
     elif [[ "${LOG_METHOD}" -eq 1 ]]; then
-        ${cmd} > >(tee "${log_dir}/${log_out}") 2> >(tee "${log_dir}/${log_err}") &
-    # Log to stdout only
+        # shellcheck disable=2068
+        ${@} > >(tee "${log_base}.log") 2> >(tee "${log_base}_err.log")
+    # Log to stdout/stderr only
     elif [[ "${LOG_METHOD}" -eq 2 ]]; then
-        ${cmd} &
+        # shellcheck disable=2068
+        ${@}
     # No output
     else
-        ${cmd} > /dev/null 2> /dev/null &
+        # shellcheck disable=2068
+        ${@} &> /dev/null
     fi
 }
