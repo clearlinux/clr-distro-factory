@@ -38,9 +38,13 @@ mv "${WORK_DIR}/${MCA_FILE}-"*.txt "${release_dir}/" || true # prevents failure 
 
 mv "${REPO_DIR}/" "${release_dir}/repo/"
 cp -a "${BUILD_DIR}/Swupd_Root.pem" "${release_dir}/config/"
-git -C "${bundles_dir}" archive --format='tar.gz' --prefix='bundles/' \
-    -o "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" HEAD > /dev/null 2>&1
-tar xf "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" -C "${release_dir}/config/"
+
+if [[ -n "${BUNDLES_REPO}" ]]; then
+    git -C "${bundles_dir}" archive --format='tar.gz' --prefix='bundles/' \
+        -o "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" HEAD > /dev/null 2>&1
+    tar xf "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" -C "${release_dir}/config/"
+fi
+
 if [[ -d "${SCRIPT_DIR}/../config/images" ]]; then
     cp -a "${SCRIPT_DIR}/../config/images" "${release_dir}/config/"
 fi
@@ -75,7 +79,9 @@ git -C config tag -f "${MIX_VERSION}"
 git -C config push --quiet -f --tags origin
 log_line "Tag: ${MIX_VERSION}. OK!" 1
 
-log_line "Downstream Bundles Repository:"
-git -C "${bundles_dir}" tag -f "${bundles_tag}"
-git -C "${bundles_dir}" push --quiet -f --tags origin
-log_line "Tag: ${bundles_tag}. OK!" 1
+if [[ -n "${BUNDLES_REPO}" ]]; then
+    log_line "Downstream Bundles Repository:"
+    git -C "${bundles_dir}" tag -f "${bundles_tag}"
+    git -C "${bundles_dir}" push --quiet -f --tags origin
+    log_line "Tag: ${bundles_tag}. OK!" 1
+fi

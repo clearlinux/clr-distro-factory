@@ -191,7 +191,11 @@ fi
 MCA_VERSIONS="${DS_LATEST}"
 
 section "Preparing Downstream Content"
-fetch_bundles # Download the Downstream Bundles Repository
+if [[ -z "${BUNDLES_REPO}" ]]; then
+    info "Custom bundles not found" "'BUNDLES_REPO' is empty"
+else
+    fetch_bundles # Download the Downstream Bundles Repository
+fi
 
 log_line "Checking Downstream Repo:"
 if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
