@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
-# Copyright (C) 2018 Intel Corporation
+# Copyright (C) 2019 Intel Corporation
+#
 # SPDX-License-Identifier: Apache-2.0
+
+NAMESPACE=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
+WORK_DIR=${WORK_DIR:-"${PWD}/${NAMESPACE}/work"}
 
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 
-# Workspace
-LOG_DIR="${WORK_DIR:-$PWD}/logs"
-REPO_DIR="${WORK_DIR:-$PWD}/repo"
-VARS_DIR="${WORK_DIR:-$PWD}/.vars"
-PKGS_DIR="${REPO_DIR}/x86_64/os/packages"
-
+# Mixer
 MIX_INCREMENT=${MIX_INCREMENT:-10}
+
+# Workspace
+LOG_DIR="${WORK_DIR}/logs"
+REPO_DIR="${WORK_DIR}/repo"
+VARS_DIR="${WORK_DIR}/.vars"
+
+BUILD_ARCH="${BUILD_ARCH:-x86_64}"
+PKGS_DIR="${REPO_DIR}/${BUILD_ARCH}/os/packages"
+PKGS_DIR_SUFFIX="repo/${BUILD_ARCH}/os/packages"
 
 BUILD_FILE=build-env
 BUNDLES_FILE=bundles-def

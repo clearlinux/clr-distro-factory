@@ -75,6 +75,7 @@ config: $(BUILD_DIR) $(STAGING_DIR)
 koji: $(addprefix koji/,$(koji_STEPS))
 .PHONY: $(addprefix koji/,$(koji_STEPS))
 $(addprefix koji/,$(koji_STEPS)):
+	NAMESPACE=$(NAMESPACE) \
 	$@.sh
 
 watcher: $(addprefix watcher/,$(watcher_STEPS))
