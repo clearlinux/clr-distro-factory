@@ -10,7 +10,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 . "${SCRIPT_DIR}/../common.sh"
 . ./config/config.sh
 
-REMOTE_PATH=${PUBLISHING_HOST}:${PUBLISHING_ROOT}/${NAMESPACE:-${DSTREAM_NAME}}
+REMOTE_PATH=${PUBLISHING_HOST}:${PUBLISHING_ROOT}/${NAMESPACE:-${DISTRO_NAME}}
 
 stage "PUBLISH"
 log "From" "${STAGING_DIR}"

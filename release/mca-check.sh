@@ -33,7 +33,7 @@ fi
 
 # Perform MCA check for each version against its previous version.
 # Format bumps create multiple MCA logs.
-pushd "${BUILD_DIR}" > /dev/null
+pushd "${MIXER_DIR}" > /dev/null
 prev_ver="${mca_versions[0]}"
 for ver in "${mca_versions[@]:1}"; do
     mca_log="${WORK_DIR}/${MCA_FILE}-${prev_ver}-${ver}.txt"

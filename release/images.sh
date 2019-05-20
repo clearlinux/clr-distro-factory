@@ -24,7 +24,7 @@ create_image() {
     local tempdir=$(mktemp -d)
     local name=$(basename "${image%.json}")
     local ister_log="${LOG_DIR}/ister-${name}.log"
-    local final_file="${IMGS_DIR}/${DSTREAM_NAME}-${MIX_VERSION}-${name}.img.xz"
+    local final_file="${IMGS_DIR}/${DISTRO_NAME}-${MIX_VERSION}-${name}.img.xz"
 
     if [[ -z "${image}" || -z "${name}" ]]; then
         error "Image creation failed. Invalid input" "${1}"
@@ -32,8 +32,8 @@ create_image() {
     fi
 
     pushd "${WORK_DIR}" > /dev/null
-    sudo -E ister.py -s "${BUILD_DIR}/Swupd_Root.pem" -L debug -F \
-        -C "file://${BUILD_DIR}/update/www" -V "file://${BUILD_DIR}/update/www" \
+    sudo -E ister.py -s "${MIXER_DIR}/Swupd_Root.pem" -L debug -F \
+        -C "file://${MIXER_DIR}/update/www" -V "file://${MIXER_DIR}/update/www" \
         -f "${format}" -t "${image}" > "${ister_log}" 2>&1
     local ister_ret=$?
     sudo rm -rf "${tempdir}"
@@ -80,7 +80,7 @@ if [[ -z "${image_list}" ]]; then
     exit 0
 fi
 
-format=$(< "${BUILD_DIR}/update/www/${MIX_VERSION}/format")
+format=$(< "${MIXER_DIR}/update/www/${MIX_VERSION}/format")
 if [[ -z "${format}" ]]; then
     error "Failed to fetch Downstream current format."
     exit 1

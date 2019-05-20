@@ -48,23 +48,23 @@ CONFIG_REPO_HOST ?= $(CURDIR)/builder/
 CLR_BUNDLES ?= "bootloader kernel-native os-core os-core-update"
 
 HOSTNAME := $(shell hostname -f)
-DSTREAM_DL_URL ?= http://$(HOSTNAME):8000/
+DISTRO_URL ?= http://$(HOSTNAME):8000/
 
-BUILD_DIR := $(CURDIR)/builder/build
+MIXER_DIR := $(CURDIR)/builder/mixer
 CONFIG_REPO := $(CURDIR)/builder/$(NAMESPACE)
 STAGING_DIR := $(CURDIR)/builder/stage
 WORK_DIR := $(CURDIR)/builder/work
 
-$(BUILD_DIR) $(STAGING_DIR) $(WORK_DIR):
+$(MIXER_DIR) $(STAGING_DIR) $(WORK_DIR):
 	@mkdir -p $@
 
-config: $(BUILD_DIR) $(STAGING_DIR)
+config: $(MIXER_DIR) $(STAGING_DIR)
 	@rm -rf $(CONFIG_REPO)
 	@mkdir -p $(CONFIG_REPO)
 	@git init $(CONFIG_REPO)
-	@echo "DSTREAM_NAME=$(NAMESPACE)" > $(CONFIG_REPO)/config.sh
-	@echo "DSTREAM_DL_URL=$(DSTREAM_DL_URL)" >> $(CONFIG_REPO)/config.sh
-	@echo "BUILD_DIR=$(BUILD_DIR)" >> $(CONFIG_REPO)/config.sh
+	@echo "DISTRO_NAME=$(NAMESPACE)" > $(CONFIG_REPO)/config.sh
+	@echo "DISTRO_URL=$(DISTRO_URL)" >> $(CONFIG_REPO)/config.sh
+	@echo "MIXER_DIR=$(MIXER_DIR)" >> $(CONFIG_REPO)/config.sh
 	@echo "STAGING_DIR=$(STAGING_DIR)" >> $(CONFIG_REPO)/config.sh
 	@git -C $(CONFIG_REPO) add config.sh
 	@git -C $(CONFIG_REPO) commit -m "Fake config.sh"

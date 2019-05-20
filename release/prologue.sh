@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Copyright (C) 2018 Intel Corporation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 # CLR_LATEST:  Mix against a specific Upstream version instead of latest
@@ -15,7 +16,10 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 . "${SCRIPT_DIR}/../common.sh"
 
-stage "PROLOGUE"
+# ==============================================================================
+# MAIN
+# ==============================================================================
+stage "Prologue"
 log_line "Sanitizing work environment..."
 
 LOG_INDENT=1 fetch_config_repo
@@ -25,9 +29,9 @@ rm -rf "${WORK_DIR}"
 mkdir -p "${WORK_DIR}"/release/{config,images}
 mkdir -p "${PKGS_DIR}"
 
-mkdir -p "${BUILD_DIR}"
-rm -rf "${BUILD_DIR}/local-rpms" "${BUILD_DIR}/local-yum"
-mkdir -p "${BUILD_DIR}/local-rpms" "${BUILD_DIR}/local-yum"
+mkdir -p "${MIXER_DIR}"
+rm -rf "${MIXER_DIR}/local-rpms" "${MIXER_DIR}/local-yum"
+mkdir -p "${MIXER_DIR}/local-rpms" "${MIXER_DIR}/local-yum"
 
 mkdir -p "${STAGING_DIR}"
 log_line "OK!" 1
@@ -44,11 +48,11 @@ EOL
 cat <<EOL
 == Configuration ==
 Downstream:
-    ${DSTREAM_NAME}
+    ${DISTRO_NAME}
 Bundles Repository:
     ${BUNDLES_REPO}
 Downstream Content/Version URL:
-    ${DSTREAM_DL_URL}
+    ${DISTRO_URL}
 Downstream Koji Server:
     ${KOJI_URL}
 Downstream Koji Tag:
@@ -71,8 +75,8 @@ Repository dir:
     ${REPO_DIR}
 Packages dir:
     ${PKGS_DIR}
-Build dir:
-    ${BUILD_DIR}
+Mixer dir:
+    ${MIXER_DIR}
 Stage dir:
     ${STAGING_DIR}
 EOL

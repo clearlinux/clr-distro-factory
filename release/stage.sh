@@ -14,9 +14,9 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load MIX_VERSION
 
-bundles_dir="${BUILD_DIR}/local-bundles"
+bundles_dir="${MIXER_DIR}/local-bundles"
 release_dir="${WORK_DIR}/release"
-bundles_tag="${NAMESPACE:-${DSTREAM_NAME}}-${MIX_VERSION}"
+bundles_tag="${NAMESPACE:-${DISTRO_NAME}}-${MIX_VERSION}"
 
 # ==============================================================================
 # MAIN
@@ -37,7 +37,7 @@ mv "${WORK_DIR}/${RELEASE_NOTES}" "${release_dir}/${RELEASE_NOTES}-${MIX_VERSION
 mv "${WORK_DIR}/${MCA_FILE}-"*.txt "${release_dir}/" || true # prevents failure when no MCA logs exist.
 
 mv "${REPO_DIR}/" "${release_dir}/repo/"
-cp -a "${BUILD_DIR}/Swupd_Root.pem" "${release_dir}/config/"
+cp -a "${MIXER_DIR}/Swupd_Root.pem" "${release_dir}/config/"
 
 if [[ -n "${BUNDLES_REPO}" ]]; then
     git -C "${bundles_dir}" archive --format='tar.gz' --prefix='bundles/' \
@@ -52,7 +52,7 @@ log_line "OK!" 1
 
 log_line "Staging 'update'"
 mkdir -p "${STAGING_DIR}/update/"
-rsync -ah "${BUILD_DIR}/update/www/" "${STAGING_DIR}/update/"
+rsync -ah "${MIXER_DIR}/update/www/" "${STAGING_DIR}/update/"
 log_line "OK!" 1
 
 log_line "Staging 'release'"
@@ -62,7 +62,7 @@ log_line "OK!" 1
 
 pushd "${STAGING_DIR}" > /dev/null
 log_line "Updating 'latest' pointers"
-cp -a "${BUILD_DIR}/update/latest" ./
+cp -a "${MIXER_DIR}/update/latest" ./
 ln -sfT "./${MIX_VERSION}" ./update/latest
 ln -sfT "./${MIX_VERSION}" ./releases/latest
 ln -sfT "./releases/${MIX_VERSION}/images" ./images

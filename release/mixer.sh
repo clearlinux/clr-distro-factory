@@ -105,11 +105,11 @@ generate_bump() {
 
     # Fake version and format
     sudo -E sed -i -E -e "s/(VERSION_ID=)(.*)/\\1\"${mix_ver_next}\"/" \
-        "${BUILD_DIR}/update/image/${mix_ver}/full/usr/lib/os-release"
+        "${MIXER_DIR}/update/image/${mix_ver}/full/usr/lib/os-release"
     echo -n "${mix_ver_next}" | sudo -E \
-        tee "${BUILD_DIR}/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
+        tee "${MIXER_DIR}/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
     echo -n "${mix_format_next}" | sudo -E \
-        tee "${BUILD_DIR}/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
+        tee "${MIXER_DIR}/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
 
     build_update "${mix_ver}"
 
@@ -129,12 +129,12 @@ generate_bump() {
         b=$(basename "$i")
         log "Deleting" "${b}"
         mixer bundle remove "${b}"
-        sudo -E sed -i -E -e "/\\[${b}\\]/d;/group=${b}/d" "${BUILD_DIR}/update/groups.ini"
+        sudo -E sed -i -E -e "/\\[${b}\\]/d;/group=${b}/d" "${MIXER_DIR}/update/groups.ini"
     done #TODO: Maybe also delete from bundles repository?
 
     # "build bundles"
     section "Fake Build Bundles"
-    sudo -E cp -al "${BUILD_DIR}/update/image/${mix_ver}" "${BUILD_DIR}/update/image/${mix_ver_next}"
+    sudo -E cp -al "${MIXER_DIR}/update/image/${mix_ver}" "${MIXER_DIR}/update/image/${mix_ver_next}"
 
     MIN_VERSION=true build_update "${mix_ver_next}"
 
@@ -170,12 +170,12 @@ generate_mix() {
 # MAIN
 # ==============================================================================
 stage Mixer
-pushd "${BUILD_DIR}" > /dev/null
+pushd "${MIXER_DIR}" > /dev/null
 
 section "Bootstrapping Mix Workspace"
 mixer init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
-mixer config set Swupd.CONTENTURL "${DSTREAM_DL_URL}/update"
-mixer config set Swupd.VERSIONURL "${DSTREAM_DL_URL}/update"
+mixer config set Swupd.CONTENTURL "${DISTRO_URL}/update"
+mixer config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
 log_line "Looking for previous releases:"
 if [[ -z ${DS_LATEST} ]]; then
