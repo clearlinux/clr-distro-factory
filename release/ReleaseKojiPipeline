@@ -14,6 +14,7 @@ pipeline {
         }
         stage('Setup Content') {
             steps {
+                sh 'release/koji.sh'
                 sh 'release/content.sh'
             }
         }
