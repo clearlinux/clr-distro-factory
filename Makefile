@@ -90,7 +90,7 @@ release: $(addprefix release/,$(release_STEPS))
 $(addprefix release/,$(release_STEPS)): config $(WORK_DIR)
 	NAMESPACE=$(NAMESPACE) \
 	CONFIG_REPO_HOST=$(CONFIG_REPO_HOST) \
-	CLR_BUNDLES="$(CLR_BUNDLES)" \
+	CLR_BUNDLES=$(CLR_BUNDLES) \
 	WORK_DIR=$(WORK_DIR) \
 	$@.sh
 
