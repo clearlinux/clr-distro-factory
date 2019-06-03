@@ -23,6 +23,7 @@ PKGS_DIR_SUFFIX="repo/${BUILD_ARCH}/os/packages"
 
 BUILD_FILE=build-env
 BUNDLES_FILE=bundles-def
+CONTENT_REPO=content
 MCA_FILE=mca-report
 PKG_LIST_FILE=packages-nvr
 PKG_LICENSES_FILE=packages-license-info
