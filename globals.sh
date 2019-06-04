@@ -25,5 +25,10 @@ BUILD_FILE=build-env
 BUNDLES_FILE=bundles-def
 MCA_FILE=mca-report
 PKG_LIST_FILE=packages-nvr
+PKG_LICENSES_FILE=packages-license-info
 PKG_LIST_TMP=packages_
 RELEASE_NOTES=release-notes
+
+# List of words to be filtered out from $PKG_LICENSES_FILE as they are not real licenses
+# Space-separated
+LICENSES_FILTER=${LICENSES_FILTER-"and"}

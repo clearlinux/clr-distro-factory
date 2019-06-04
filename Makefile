@@ -8,7 +8,7 @@ koji_STEPS := $(patsubst %.sh,%,$(notdir $(koji_SRC)))
 
 release_CHECKOPTS := --exclude=2013,2024,2155
 release_SRC := $(wildcard $(CURDIR)/release/*.sh)
-release_STEPS := prologue local content mixer images release_notes stage #skipping: koji publish
+release_STEPS := prologue local content mixer images license_info release_notes stage #skipping: koji publish
 
 watcher_SRC := $(wildcard $(CURDIR)/watcher/*.sh)
 watcher_STEPS := $(patsubst %.sh,%,$(notdir $(watcher_SRC)))
@@ -103,7 +103,7 @@ serve: $(STAGING_DIR)
 clean:
 	rm -rf $(CURDIR)/builder
 
-# Static Code Analysis 
+# Static Code Analysis
 # ====================
 check_CHECKOPTS := --exclude=1091
 check_PIPELINES = check-common $(addprefix check-,$(pipelines))

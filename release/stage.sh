@@ -33,6 +33,7 @@ section "Copying Artifacts"
 log_line "Finishing 'release' folder"
 mv "${WORK_DIR}/${BUILD_FILE}" "${release_dir}/${BUILD_FILE}-${MIX_VERSION}.txt"
 mv "${WORK_DIR}/${PKG_LIST_FILE}" "${release_dir}/${PKG_LIST_FILE}-${MIX_VERSION}.txt"
+mv "${WORK_DIR}/${PKG_LICENSES_FILE}" "${release_dir}/${PKG_LICENSES_FILE}-${MIX_VERSION}.txt"
 mv "${WORK_DIR}/${RELEASE_NOTES}" "${release_dir}/${RELEASE_NOTES}-${MIX_VERSION}.txt"
 mv "${WORK_DIR}/${MCA_FILE}-"*.txt "${release_dir}/" 2>/dev/null || true # prevents failure when no MCA logs exist.
 
