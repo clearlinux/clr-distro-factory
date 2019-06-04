@@ -30,6 +30,7 @@ pipeline {
         }
         stage('Stage') {
             steps {
+                sh 'release/license_info.sh'
                 sh 'release/release_notes.sh'
                 sh 'release/stage.sh'
             }
