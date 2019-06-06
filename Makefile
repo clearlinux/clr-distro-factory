@@ -75,20 +75,20 @@ config: $(MIXER_DIR) $(STAGING_DIR)
 koji: $(addprefix koji/,$(koji_STEPS))
 .PHONY: $(addprefix koji/,$(koji_STEPS))
 $(addprefix koji/,$(koji_STEPS)):
-	NAMESPACE=$(NAMESPACE) \
+	@NAMESPACE=$(NAMESPACE) \
 	$@.sh
 
 watcher: $(addprefix watcher/,$(watcher_STEPS))
 .PHONY: $(addprefix watcher/,$(watcher_STEPS))
 $(addprefix watcher/,$(watcher_STEPS)): config
-	NAMESPACE=$(NAMESPACE) \
+	@NAMESPACE=$(NAMESPACE) \
 	CONFIG_REPO_HOST=$(CONFIG_REPO_HOST) \
 	$@.sh
 
 release: $(addprefix release/,$(release_STEPS))
 .PHONY: $(addprefix release/,$(release_STEPS))
 $(addprefix release/,$(release_STEPS)): config $(WORK_DIR)
-	NAMESPACE=$(NAMESPACE) \
+	@NAMESPACE=$(NAMESPACE) \
 	CONFIG_REPO_HOST=$(CONFIG_REPO_HOST) \
 	CLR_BUNDLES=$(CLR_BUNDLES) \
 	WORK_DIR=$(WORK_DIR) \
