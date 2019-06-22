@@ -58,16 +58,17 @@ WORK_DIR := $(CURDIR)/builder/work
 $(MIXER_DIR) $(STAGING_DIR) $(WORK_DIR):
 	@mkdir -p $@
 
-config: $(MIXER_DIR) $(STAGING_DIR)
-	@rm -rf $(CONFIG_REPO)
-	@mkdir -p $(CONFIG_REPO)
-	@git init $(CONFIG_REPO)
-	@echo "DISTRO_NAME=$(NAMESPACE)" > $(CONFIG_REPO)/config.sh
-	@echo "DISTRO_URL=$(DISTRO_URL)" >> $(CONFIG_REPO)/config.sh
-	@echo "MIXER_DIR=$(MIXER_DIR)" >> $(CONFIG_REPO)/config.sh
-	@echo "STAGING_DIR=$(STAGING_DIR)" >> $(CONFIG_REPO)/config.sh
-	@git -C $(CONFIG_REPO) add config.sh
-	@git -C $(CONFIG_REPO) commit -m "Fake config.sh"
+$(CONFIG_REPO):
+	@mkdir -p $@
+	@git init $@
+	@echo "DISTRO_NAME=$(NAMESPACE)" > $@/config.sh
+	@echo "DISTRO_URL=$(DISTRO_URL)" >> $@/config.sh
+	@echo "MIXER_DIR=$(MIXER_DIR)" >> $@/config.sh
+	@echo "STAGING_DIR=$(STAGING_DIR)" >> $@/config.sh
+	@git -C $@ add config.sh
+	@git -C $@ commit -m "Fake config.sh"
+
+config: $(MIXER_DIR) $(STAGING_DIR) $(CONFIG_REPO)
 
 .NOTPARALLEL: $(pipelines)
 .PHONY: $(pipelines)
