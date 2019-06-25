@@ -33,3 +33,6 @@ RELEASE_NOTES=release-notes
 # List of words to be filtered out from $PKG_LICENSES_FILE as they are not real licenses
 # Space-separated
 LICENSES_FILTER=${LICENSES_FILTER-"and"}
+
+# sign_image requirements
+CHKSUM_FILE_SUFFIX=${CHKSUM_FILE_SUFFIX:-"SHA512SUM"}

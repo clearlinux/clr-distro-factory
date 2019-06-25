@@ -123,6 +123,7 @@ echo
 assert_dep mixer
 assert_dep clr-installer
 assert_dep swupd
+assert_dep sha512sum
 
 tee -a "${WORK_DIR}/${BUILD_FILE}" <<EOL
 == TOOLS ==
