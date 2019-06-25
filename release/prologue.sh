@@ -121,6 +121,7 @@ fi
 echo
 
 assert_dep mixer
+assert_dep clr-installer
 assert_dep swupd
 
 tee -a "${WORK_DIR}/${BUILD_FILE}" <<EOL
@@ -129,6 +130,8 @@ Clear Linux Version (on Builder):
     $(cat /usr/share/clear/version)
 Mixer Version:
     $(mixer --version)
+Clr-installer Version:
+    $(clr-installer --version)
 Swupd Version:
     $(swupd --version 2>&1 | head -1)
 
