@@ -45,7 +45,7 @@ build_bundles() {
 
     log_line "Building Bundles:"
     log_line
-    sudo -E mixer --native build bundles
+    sudo -E mixer --native build bundles "${SIGN_VAR}"
     log_line
 }
 
@@ -54,9 +54,9 @@ build_update() {
 
     section "Build 'Update' Content"
     if ${MIN_VERSION:-false}; then
-        sudo -E mixer --native build update --skip-format-check --min-version="${mix_ver}"
+        sudo -E mixer --native build update --skip-format-check --min-version="${mix_ver}" "${SIGN_VAR}"
     else
-        sudo -E mixer --native build update --skip-format-check
+        sudo -E mixer --native build update --skip-format-check "${SIGN_VAR}"
     fi
 }
 
@@ -138,6 +138,10 @@ generate_bump() {
 
     MIN_VERSION=true build_update "${mix_ver_next}"
 
+    if [[ ${SIGN_MOM} == "true" ]]; then
+        sign_mom
+    fi
+
     echo -n "${mix_ver_next}" | sudo -E tee update/latest > /dev/null
 }
 
@@ -161,9 +165,25 @@ generate_mix() {
 
     build_update "${mix_ver}"
 
+    if [[ ${SIGN_MOM} == "true" ]]; then
+        sign_mom
+    fi
+
     build_deltas "${mix_ver}"
 
     echo -n "${mix_ver}" | sudo -E tee update/latest > /dev/null
+}
+
+sign_mom(){
+
+    if [ -z "${CUSTOM_MoM_CMD}" ]; then
+        warn "Skipping stage."
+        warn "No custom sign command for MoM is provided"
+    exit 0
+    fi
+
+    log "Signing MoM with custom command"
+    eval "${CUSTOM_MoM_CMD}"
 }
 
 # ==============================================================================
@@ -171,6 +191,14 @@ generate_mix() {
 # ==============================================================================
 stage Mixer
 pushd "${MIXER_DIR}" > /dev/null
+
+#Check whether need to sign Manifest.MoM
+if [[ ${SIGN_MOM} == "false" ]]; then
+    SIGN_VAR=""
+else
+    SIGN_VAR="--no-signing"
+fi
+
 
 section "Bootstrapping Mix Workspace"
 mixer init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
