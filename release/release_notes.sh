@@ -106,8 +106,11 @@ ${pkgs_changed:-"    None"}
 EOL
 }
 
+# ==============================================================================
+# MAIN
+# ==============================================================================
 pushd "${WORK_DIR}" > /dev/null
-echo "Generating Release Notes"
+log "Generating Release Notes"
 generate_release_notes
-echo "    Done!"
+log_line "Done!" 1
 popd > /dev/null
