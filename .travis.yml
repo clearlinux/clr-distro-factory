@@ -17,5 +17,5 @@ jobs:
     - stage: Make Release
       install: docker build --quiet --build-arg UID=$(id -u) --network host --force-rm -t clr-builder .travis
       script:
-        - docker run --rm -v $(pwd):/mnt clr-builder make release
-        - docker run --rm -v $(pwd):/mnt clr-builder make release
+        - docker run --runtime=runc --rm -v $(pwd):/mnt clr-builder make release
+        - docker run --runtime=runc --rm -v $(pwd):/mnt clr-builder make release
