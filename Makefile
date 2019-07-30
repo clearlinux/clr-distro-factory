@@ -97,7 +97,7 @@ $(addprefix release/,$(release_STEPS)): config $(WORK_DIR)
 
 .PHONY: serve
 serve: $(STAGING_DIR)
-	cd $(STAGING_DIR); python -mSimpleHTTPServer
+	cd $(STAGING_DIR); python3 -m http.server
 
 .PHONY: clean
 clean:
