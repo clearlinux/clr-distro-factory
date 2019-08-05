@@ -7,6 +7,7 @@ RUN swupd clean --quiet
 ARG UID=1000
 
 RUN useradd -G wheelnopw --uid ${UID} -U -m travis
+RUN echo "%wheelnopw ALL=(ALL) NOPASSWD: ALL" > /usr/share/defaults/sudo/sudoers.d/wheelnopw
 
 USER travis
 
