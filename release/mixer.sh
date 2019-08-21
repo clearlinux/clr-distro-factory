@@ -94,9 +94,9 @@ generate_bump() {
 
     build_bundles
 
-    # Delete deprecated bundles
+    # Remove bundles pending deletion
     section "Bundle Deletion"
-    for i in $(grep -lir "\\[STATUS\\]: Deprecated" upstream-bundles/ local-bundles/); do
+    for i in $(grep -lir "\\[STATUS\\]: Pending-Delete" upstream-bundles/ local-bundles/); do
         b=$(basename "$i")
         log "Deleting" "${b}"
         sudo -E rm -f "update/image/${mix_ver}/${b}-info"
@@ -123,9 +123,9 @@ generate_bump() {
     # Set Upstream and Mix versions
     mixer versions update --clear-version "${clear_ver_next}" --mix-version "${mix_ver_next}" --offline --skip-format-check
 
-    # Delete deprecated bundles again
+    # Remove bundles pending deletion again
     section "Bundle Deletion"
-    for i in $(grep -lir "\\[STATUS\\]: Deprecated" upstream-bundles/ local-bundles/); do
+    for i in $(grep -lir "\\[STATUS\\]: Pending-Delete" upstream-bundles/ local-bundles/); do
         b=$(basename "$i")
         log "Deleting" "${b}"
         mixer bundle remove "${b}"
