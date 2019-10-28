@@ -2,8 +2,8 @@
 # Copyright (C) 2018 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-# IMG_SIGN_KEY: private key to sign shasum using openssl commands
-# IMG_SIGN_CMD: input to customize signing of shasum commands
+# IMG_SIGN_CMD: (Optional) Custom command to be used for signing image checksum files.
+# IMG_SIGN_KEY: (Optional) Private key to be used for signing image checksum files with 'openssl'.
 
 # shellcheck source=common.sh
 
@@ -23,19 +23,16 @@ PROCS_PER_IMG=8
 TEMPLATES_PATH=${TEMPLATES_PATH:-"${PWD}/config/images"}
 
 sign_checksum() {
-    chksum_file=$1
+    local chksum_file=$1
 
-    if [[ ! -f "${IMG_SIGN_KEY}" && -z "${IMG_SIGN_CMD}"  ]]; then
-        warn "Skip signing due to no signing command nor signing key provided"
-        return 1
-    fi
-
-    if [[ -z "${IMG_SIGN_CMD}" ]]; then
-        log "signing ${chksum_file}.sig with openssl"
+    if [[ -n "${IMG_SIGN_CMD}" ]]; then
+        log "Signing (custom)" "${chksum_file}"
+        "${IMG_SIGN_CMD}" "${chksum_file}" "${chksum_file}.sig"
+    elif [[ -s "${IMG_SIGN_KEY}" ]]; then
+        log "Signing (openssl)" "${chksum_file}"
         openssl dgst -sha1 -sign "${IMG_SIGN_KEY}" -out "${chksum_file}.sig" "${chksum_file}"
     else
-        log "Using custom signing command."
-        "${IMG_SIGN_CMD}" "${chksum_file}" "${chksum_file}.sig"
+        warn "Skipping signing" "Neither custom signing command nor a signing key provided."
     fi
 }
 
