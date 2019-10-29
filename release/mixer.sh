@@ -51,9 +51,11 @@ build_bundles() {
     rm -f ./mixbundles
 
     log_line
-    # Add the upstream Bundle definitions for this base version of ClearLinux
-    # shellcheck disable=SC2086
-    mixer_cmd bundle add ${CLR_BUNDLES:-"--all-upstream"}
+    if ! "${IS_UPSTREAM}"; then
+        # Add the upstream Bundle definitions for this base version of ClearLinux
+        # shellcheck disable=SC2086
+        mixer_cmd bundle add ${CLR_BUNDLES:-"--all-upstream"}
+    fi
 
     # Add the downstream Bundle definitions
     # shellcheck disable=SC2086
