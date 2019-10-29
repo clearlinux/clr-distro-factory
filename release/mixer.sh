@@ -96,7 +96,14 @@ generate_bump() {
 
     # Remove bundles pending deletion
     section "Bundle Deletion"
-    for i in $(grep -lir "\\[STATUS\\]: Pending-Delete" upstream-bundles/ local-bundles/); do
+    local bundle_folders
+    if "${IS_UPSTREAM}"; then
+        bundle_folders="local-bundles/"
+    else
+        bundle_folders="upstream-bundles/ local-bundles/"
+    fi
+    # shellcheck disable=SC2086
+    for i in $(grep -lir "\\[STATUS\\]: Pending-Delete" ${bundle_folders}); do
         b=$(basename "$i")
         log "Deleting" "${b}"
         sudo -E rm -f "update/image/${mix_ver}/${b}-info"
