@@ -20,9 +20,11 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 var_load_all
 
 fetch_bundles() {
-    log_line "Fetching downstream bundles:"
+    log_line "Fetching bundles:"
+    local bundles_dir="${WORK_DIR}/bundles"
+    git clone --quiet "${BUNDLES_REPO}" "${bundles_dir}"
     rm -rf ./local-bundles
-    git clone --quiet "${BUNDLES_REPO}" local-bundles
+    mv "${bundles_dir}/${BUNDLES_REPO_SRC_DIR}" ./local-bundles
     log_line "OK!" 1
 }
 
