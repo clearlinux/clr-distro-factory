@@ -19,6 +19,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load_all
 
+NUM_DELTA_BUILDS=${NUM_DELTA_BUILDS:-10}
 MIXER_OPTS=${MIXER_OPTS:-"--native"}
 
 mixer_cmd() {
@@ -73,13 +74,20 @@ build_update() {
 }
 
 build_deltas() {
-    local mix_ver="$1"
-
     section "Deltas"
-    if [[ -n "${DS_LATEST}" ]]; then
-        sudo_mixer_cmd build delta-packs --from "${DS_LATEST}" --to "${mix_ver}"
+
+    log "Building delta packs..." 1
+    if (( NUM_DELTA_BUILDS > 0 )); then
+        sudo_mixer_cmd build delta-packs --previous-versions "${NUM_DELTA_BUILDS}"
     else
-        log "Skipping Delta Packs creation" "No previous version was found."
+        log "Skipping delta pack creation" "No positive number of build were specified"
+    fi
+
+    log "Building delta manifests..."
+    if (( NUM_DELTA_BUILDS > 0 )); then
+        sudo_mixer_cmd build delta-manifests --previous-versions "${NUM_DELTA_BUILDS}"
+    else
+        log "Skipping delta manifest creation" "No positive number of builds were specified"
     fi
 }
 
@@ -125,7 +133,7 @@ generate_bump() {
 
     build_update "${mix_ver}"
 
-    build_deltas "${mix_ver}"
+    build_deltas
 
     # Bumped Build (+20)
     # Set the Mix Format
@@ -173,7 +181,7 @@ generate_mix() {
 
     build_update "${mix_ver}"
 
-    build_deltas "${mix_ver}"
+    build_deltas
 
     echo -n "${mix_ver}" | sudo -E tee update/latest > /dev/null
 }
