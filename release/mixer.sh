@@ -19,6 +19,18 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load_all
 
+MIXER_OPTS=${MIXER_OPTS:-"--native"}
+
+mixer_cmd() {
+    # shellcheck disable=SC2086
+    mixer ${MIXER_OPTS} "${@}"
+}
+
+sudo_mixer_cmd() {
+    # shellcheck disable=SC2086
+    sudo -E mixer ${MIXER_OPTS} "${@}"
+}
+
 fetch_bundles() {
     log_line "Fetching downstream bundles:"
     rm -rf ./local-bundles
@@ -36,16 +48,16 @@ build_bundles() {
     log_line
     # Add the upstream Bundle definitions for this base version of ClearLinux
     # shellcheck disable=SC2086
-    mixer bundle add ${CLR_BUNDLES:-"--all-upstream"}
+    mixer_cmd bundle add ${CLR_BUNDLES:-"--all-upstream"}
 
     # Add the downstream Bundle definitions
     # shellcheck disable=SC2086
-    mixer bundle add ${DS_BUNDLES:-"--all-local"}
+    mixer_cmd bundle add ${DS_BUNDLES:-"--all-local"}
     log_line
 
     log_line "Building Bundles:"
     log_line
-    sudo -E mixer --native build bundles
+    sudo_mixer_cmd build bundles
     log_line
 }
 
@@ -54,9 +66,9 @@ build_update() {
 
     section "Build 'Update' Content"
     if ${MIN_VERSION:-false}; then
-        sudo -E mixer --native build update --skip-format-check --min-version="${mix_ver}"
+        sudo_mixer_cmd build update --skip-format-check --min-version="${mix_ver}"
     else
-        sudo -E mixer --native build update --skip-format-check
+        sudo_mixer_cmd build update --skip-format-check
     fi
 }
 
@@ -65,7 +77,7 @@ build_deltas() {
 
     section "Deltas"
     if [[ -n "${DS_LATEST}" ]]; then
-        sudo -E mixer --native build delta-packs --from "${DS_LATEST}" --to "${mix_ver}"
+        sudo_mixer_cmd build delta-packs --from "${DS_LATEST}" --to "${mix_ver}"
     else
         log "Skipping Delta Packs creation" "No previous version was found."
     fi
@@ -90,7 +102,7 @@ generate_bump() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
+    mixer_cmd versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
 
     build_bundles
 
@@ -121,14 +133,14 @@ generate_bump() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format_next}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer versions update --clear-version "${clear_ver_next}" --mix-version "${mix_ver_next}" --offline --skip-format-check
+    mixer_cmd versions update --clear-version "${clear_ver_next}" --mix-version "${mix_ver_next}" --offline --skip-format-check
 
     # Remove bundles pending deletion again
     section "Bundle Deletion"
     for i in $(grep -lir "\\[STATUS\\]: Pending-Delete" upstream-bundles/ local-bundles/); do
         b=$(basename "$i")
         log "Deleting" "${b}"
-        mixer bundle remove "${b}"
+        mixer_cmd bundle remove "${b}"
         sudo -E sed -i -E -e "/\\[${b}\\]/d;/group=${b}/d" "${MIXER_DIR}/update/groups.ini"
     done #TODO: Maybe also delete from bundles repository?
 
@@ -155,7 +167,7 @@ generate_mix() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
+    mixer_cmd versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
 
     build_bundles
 
@@ -173,9 +185,9 @@ stage Mixer
 pushd "${MIXER_DIR}" > /dev/null
 
 section "Bootstrapping Mix Workspace"
-mixer init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
-mixer config set Swupd.CONTENTURL "${DISTRO_URL}/update"
-mixer config set Swupd.VERSIONURL "${DISTRO_URL}/update"
+mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
+mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
+mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
 log_line "Looking for previous releases:"
 if [[ -z ${DS_LATEST} ]]; then
@@ -199,7 +211,7 @@ fi
 
 log_line "Checking Downstream Repo:"
 if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
-    mixer repo set-url "${CONTENT_REPO}" "file://${REPO_DIR}/x86_64/os" > /dev/null
+    mixer_cmd repo set-url "${CONTENT_REPO}" "file://${REPO_DIR}/x86_64/os" > /dev/null
     log_line "Content found. Adding it to the mix!" 1
 else
     log_line "Content not found. Skipping it." 1
