@@ -73,7 +73,15 @@ calculate_diffs() {
             pkgs_removed+=$(printf "\\n    %s    %s-%s" "${NO}" "${VO}" "${RO}")
         fi
     done <<< $old_package_list
-}
+}     
+
+#<WIP> Mauricio test changes list and collecting bundle differences between builds 
+# Collecting bundles data    
+    #bundles_added=$(grep 'Added bundles:' ${STAGING_DIR}/releases/${DS_LATEST}/mca-report-*)
+    #bundles_removed=$(grep 'Deleted bundles:' ${STAGING_DIR}/releases/${DS_LATEST}/mca-report-*)
+    bundles_added=$(grep 'Added bundles:' "${WORK_DIR}/"mca-report-*)
+    bundles_removed=$(grep 'Deleted bundles:' "${WORK_DIR}/"mca-report-*)
+    #echo ${bundle_added} > bundles_latest
 
 generate_release_notes() {
     calculate_diffs
@@ -95,6 +103,7 @@ EOL
     fi
 
     cat >> ${RELEASE_NOTES} << EOL
+
 ADDED PACKAGES:
 ${pkgs_added:-"    None"}
 
@@ -103,6 +112,15 @@ ${pkgs_removed:-"    None"}
 
 UPDATED PACKAGES:
 ${pkgs_changed:-"    None"}
+
+#ADDED BUNDLES:
+${bundles_added}
+
+CHANGED BUNDLES:
+${changed_bundles}
+
+DELETED BUNDLES:
+${bundles_removed}
 EOL
 }
 
