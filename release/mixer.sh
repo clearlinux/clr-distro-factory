@@ -21,8 +21,12 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 var_load_all
 
 IS_UPSTREAM=${IS_UPSTREAM:-false}
+if "$IS_UPSTREAM"; then
+    MIXER_OPTS="--offline --native"
+else
+    MIXER_OPTS="--native"
+fi
 NUM_DELTA_BUILDS=${NUM_DELTA_BUILDS:-10}
-MIXER_OPTS=${MIXER_OPTS:-"--native"}
 
 mixer_cmd() {
     # shellcheck disable=SC2086
