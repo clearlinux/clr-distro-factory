@@ -4,6 +4,7 @@
 
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
 # DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
+# IS_UPSTREAM: If this update stream is either an upstream or a downstream
 # MIN_VERSION: If this build should be a min version
 
 # shellcheck source=common.sh
@@ -19,6 +20,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load_all
 
+IS_UPSTREAM=${IS_UPSTREAM:-false}
 NUM_DELTA_BUILDS=${NUM_DELTA_BUILDS:-10}
 MIXER_OPTS=${MIXER_OPTS:-"--native"}
 
