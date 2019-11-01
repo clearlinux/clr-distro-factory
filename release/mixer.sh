@@ -80,20 +80,26 @@ build_update() {
 }
 
 build_deltas() {
+    local mix_format="${1}"
+
     section "Deltas"
 
-    log "Building delta packs..." 1
-    if (( NUM_DELTA_BUILDS > 0 )); then
-        sudo_mixer_cmd build delta-packs --previous-versions "${NUM_DELTA_BUILDS}"
+    local first_file="update/www/version/format${mix_format}/first"
+    if [[ -s "${first_file}" ]]; then
+        local first_version="$(< "${first_file}")"
+        log "Building deltas from the first build ${first_version} in format ${mix_format}..."
+        sudo_mixer_cmd build delta-packs --from "${first_version}"
+        sudo_mixer_cmd build delta-manifests --from "${first_version}"
     else
-        log "Skipping delta pack creation" "No positive number of build were specified"
+        log "Skipping delta creation from the first build ${first_version} in format ${mix_format}" "'first' file not found for format ${mix_format}"
     fi
 
-    log "Building delta manifests..."
     if (( NUM_DELTA_BUILDS > 0 )); then
+        log "Building deltas for the previous ${NUM_DELTA_BUILDS} builds..." 1
+        sudo_mixer_cmd build delta-packs --previous-versions "${NUM_DELTA_BUILDS}"
         sudo_mixer_cmd build delta-manifests --previous-versions "${NUM_DELTA_BUILDS}"
     else
-        log "Skipping delta manifest creation" "No positive number of builds were specified"
+        log "Skipping delta creation for the previous ${NUM_DELTA_BUILDS} builds" "'NUM_DELTA_BUILDS' <= 0"
     fi
 }
 
@@ -146,7 +152,7 @@ generate_bump() {
 
     build_update "${mix_ver}"
 
-    build_deltas
+    build_deltas "${mix_format}"
 
     # Bumped Build (+20)
     # Set the Mix Format
@@ -172,6 +178,7 @@ generate_bump() {
     MIN_VERSION=true build_update "${mix_ver_next}"
 
     echo -n "${mix_ver_next}" | sudo -E tee update/latest > /dev/null
+    echo -n "${mix_ver_next}" | sudo -E tee "update/www/version/format${mix_format_next}/first" > /dev/null
 }
 
 generate_mix() {
@@ -194,7 +201,7 @@ generate_mix() {
 
     build_update "${mix_ver}"
 
-    build_deltas
+    build_deltas "${mix_format}"
 
     echo -n "${mix_ver}" | sudo -E tee update/latest > /dev/null
 }
