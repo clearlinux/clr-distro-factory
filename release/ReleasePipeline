@@ -25,7 +25,9 @@ pipeline {
         }
         stage('Create Images') {
             steps {
-                sh 'release/images.sh'
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh 'release/images.sh'
+                }
             }
         }
         stage('Stage') {
