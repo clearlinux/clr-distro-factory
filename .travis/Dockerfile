@@ -2,7 +2,7 @@ FROM clearlinux:latest
 LABEL maintainer="murilo.belluzzo@intel.com"
 
 RUN swupd bundle-add --quiet make network-basic mixer clr-installer sudo
-RUN swupd clean --quiet
+RUN swupd clean --all --quiet
 
 ARG UID=1000
 
