@@ -76,12 +76,30 @@ calculate_diffs() {
 }     
 
 #<WIP> Mauricio test changes list and collecting bundle differences between builds 
-# Collecting bundles data    
-    #bundles_added=$(grep 'Added bundles:' ${STAGING_DIR}/releases/${DS_LATEST}/mca-report-*)
-    #bundles_removed=$(grep 'Deleted bundles:' ${STAGING_DIR}/releases/${DS_LATEST}/mca-report-*)
-    bundles_added=$(grep 'Added bundles:' "${WORK_DIR}/"mca-report-*)
-    bundles_removed=$(grep 'Deleted bundles:' "${WORK_DIR}/"mca-report-*)
+calculate_bundles_diffs() {
+    
+
+    #Collecting bundles data for old version 
+#   	  if [[ -n ${DS_LATEST} ]]; then
+    	    bundles_file=$(tar -ztvf "${STAGING_DIR}/releases/${DS_LATEST}/bundles-def-${DS_LATEST}.tar.gz" >> bundles_file.txt)
+	    old_bundles_files=$(awk '{print $6}' "${bundles_file}")
+       cat > ${old_bundles_files} > test2.txt
+}       
+#    	    assert_file "${bundles_file}"
+#
+#            old_bundle_list=$(awk '{print $NF}' "${bundles_file}")
+ #   else
+#        old_bundle_list=""
+  #  fi
+
+    #bundles_added=$(grep 'Added bundles:' "${WORK_DIR}/"mca-report-*)
+    #bundles_removed=$(grep 'Deleted bundles:' "${WORK_DIR}/"mca-report-*)
     #echo ${bundle_added} > bundles_latest
+
+    #collecting bundles data for new version     
+
+
+
 
 generate_release_notes() {
     calculate_diffs
