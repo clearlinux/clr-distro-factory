@@ -6,11 +6,21 @@
 NAMESPACE=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
 WORK_DIR=${WORK_DIR:-"${PWD}/${NAMESPACE}/work"}
 
+# Distribution
+# If this update stream is either an upstream or a downstream
+IS_UPSTREAM=${IS_UPSTREAM:-false}
+# If this build should be a min version
+MIN_VERSION=${MIN_VERSION:-false}
+
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 
 # Mixer
 MIX_INCREMENT=${MIX_INCREMENT:-10}
+# Global options to apply to all mixer calls
+MIXER_OPTS=${MIXER_OPTS:-""}
+# Number of builds from the current build to generate deltas
+NUM_DELTA_BUILDS=${NUM_DELTA_BUILDS:-10}
 
 # Workspace
 LOG_DIR="${WORK_DIR}/logs"
