@@ -232,7 +232,8 @@ fi
 
 log_line "Checking Downstream Repo:"
 if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
-    mixer_cmd repo set-url "${CONTENT_REPO}" "file://${REPO_DIR}/x86_64/os" > /dev/null
+    mixer_cmd config set Mixer.LOCAL_RPM_DIR "${REPO_DIR}/x86_64/os/Packages"
+    mixer_cmd add-rpms > /dev/null
     log_line "Content found. Adding it to the mix!" 1
 else
     log_line "Content not found. Skipping it." 1
