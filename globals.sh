@@ -21,6 +21,8 @@ MIX_INCREMENT=${MIX_INCREMENT:-10}
 MIXER_OPTS=${MIXER_OPTS:-""}
 # Number of builds from the current build to generate deltas
 NUM_DELTA_BUILDS=${NUM_DELTA_BUILDS:-10}
+# Supported Mixer Version
+MIXER_MAJOR_VER=${MIXER_MAJOR_VER:-6}
 
 # Workspace
 LOG_DIR="${WORK_DIR}/logs"
