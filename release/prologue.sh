@@ -144,3 +144,10 @@ Swupd Version:
     $(swupd --version 2>&1 | head -1)
 
 EOL
+
+mixer_major_ver=$(mixer --version | sed -E -e 's/.*([0-9]+).[0-9]+.[0-9]+$/\1/')
+if (( mixer_major_ver < MIXER_MAJOR_VER )); then
+    error "Unsupported Mixer Version" "Mixer major version needs to be ${MIXER_MAJOR_VER} or greater"
+    error "Aborting build to avoid corrupting your mixer workspace"
+    exit 1
+fi
