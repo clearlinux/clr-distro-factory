@@ -118,6 +118,13 @@ else
     echo "    No!"
 fi
 
+echo "Is this an 'upstream' mix?"
+if ${IS_UPSTREAM}; then
+    echo "    Yes!"
+else
+    echo "    No!"
+fi
+
 echo
 
 assert_dep mixer
