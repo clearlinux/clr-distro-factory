@@ -50,7 +50,7 @@ for ver in "${mca_versions[@]:1}"; do
     log_line
 
     # shellcheck disable=2086
-    sudo -E mixer --native build validate ${args} | tee "${mca_log}"
+    sudo_mixer_cmd build validate ${args} | tee "${mca_log}"
 
     # Remove cached RPMs that won't be reused
     sudo rm -rf "update/validation/${prev_ver}"

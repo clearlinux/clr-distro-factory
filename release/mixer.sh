@@ -23,16 +23,6 @@ if "${IS_UPSTREAM}" && [[ ${MIXER_OPTS} != *"--offline"* ]]; then
     MIXER_OPTS="${MIXER_OPTS} --offline"
 fi
 
-mixer_cmd() {
-    # shellcheck disable=SC2086
-    mixer ${MIXER_OPTS} "${@}"
-}
-
-sudo_mixer_cmd() {
-    # shellcheck disable=SC2086
-    sudo -E mixer ${MIXER_OPTS} "${@}"
-}
-
 fetch_bundles() {
     log_line "Fetching bundles:"
     local bundles_dir="${WORK_DIR}/bundles"
