@@ -149,3 +149,13 @@ koji_cmd() {
     [[ -n "${result}" ]] && echo "${result}"
     return ${ret}
 }
+
+mixer_cmd() {
+    # shellcheck disable=SC2086
+    mixer ${MIXER_OPTS} "${@}"
+}
+
+sudo_mixer_cmd() {
+    # shellcheck disable=SC2086
+    sudo -E mixer ${MIXER_OPTS} "${@}"
+}
