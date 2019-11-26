@@ -112,7 +112,7 @@ var_save MIX_DOWN_VERSION
 echo "Next Downstream Version:"
 echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
 echo "Should this build be a MIN version?"
-if ${MIN_VERSION:-false}; then
+if ${MIN_VERSION}; then
     echo "    Yes!"
 else
     echo "    No!"
