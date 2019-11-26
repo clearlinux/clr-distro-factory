@@ -11,12 +11,15 @@ WORK_DIR=${WORK_DIR:-"${PWD}/${NAMESPACE}/work"}
 IS_UPSTREAM=${IS_UPSTREAM:-false}
 # If this build should be a min version
 MIN_VERSION=${MIN_VERSION:-false}
+# If this build should be a format bump
+FORMAT_BUMP=${FORMAT_BUMP:-false}
 
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 
 # Mixer
 MIX_INCREMENT=${MIX_INCREMENT:-10}
+FORMAT_INCREMENT=${FORMAT_INCREMENT:-1}
 # Global options to apply to all mixer calls
 MIXER_OPTS=${MIXER_OPTS:-""}
 # Number of builds from the current build to generate deltas

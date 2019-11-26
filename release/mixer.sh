@@ -32,6 +32,13 @@ fetch_bundles() {
     log_line "OK!" 1
 }
 
+stage_packages() {
+    log_line "Staging packages"
+    mixer_cmd config set Mixer.LOCAL_RPM_DIR "${PKGS_DIR}"
+    mixer_cmd add-rpms > /dev/null
+    log_line "OK!" 1
+}
+
 build_bundles() {
     section "Bundles"
     log_line "Updating Bundles List:"
@@ -184,7 +191,12 @@ generate_mix() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer_cmd versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
+    # FIXME: When an upstream runs a mix for the first time, it needs to define versions during mixer init due to
+    # its usafe of --offline.  Then when we come this this command, it fails because it is not a set, but more of
+    # an update, which checks behind the scenes that the mix version is greater than what was already there (defined
+    # by mixer init).  Dropping arguments from mixer init causes this command to error saying that the versions
+    # need to be set manually, which is what this command is trying to do.  Work around this with a hack of || true.
+    mixer_cmd versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check || true
 
     build_bundles
 
@@ -201,104 +213,141 @@ generate_mix() {
 stage Mixer
 pushd "${MIXER_DIR}" > /dev/null
 
-section "Bootstrapping Mix Workspace"
-mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
-mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
-mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
-
-log_line "Looking for previous releases:"
-if [[ -z ${DS_LATEST} ]]; then
-    log_line "None found. This will be the first Mix!" 1
-    DS_UP_FORMAT=${CLR_FORMAT}
-    # shellcheck disable=SC2034
-    DS_UP_VERSION=${CLR_LATEST}
-
-    var_save DS_UP_FORMAT
-    var_save DS_UP_VERSION
-fi
-
-MCA_VERSIONS="${DS_LATEST}"
-
-section "Preparing Downstream Content"
-if [[ -z "${BUNDLES_REPO}" ]]; then
-    info "Custom bundles not found" "'BUNDLES_REPO' is empty"
-else
-    fetch_bundles # Download the Downstream Bundles Repository
-fi
-
-log_line "Checking Downstream Repo:"
-if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
-    mixer_cmd config set Mixer.LOCAL_RPM_DIR "${PKGS_DIR}"
-    mixer_cmd add-rpms > /dev/null
-    log_line "Content found. Adding it to the mix!" 1
-else
-    log_line "Content not found. Skipping it." 1
-fi
-
-section "Building"
-format_bumps=$(( CLR_FORMAT - DS_UP_FORMAT ))
-(( format_bumps )) && info "Format Bumps will be needed"
-#TODO: Check for required mixer version for the bump here
-
-for (( bump=0 ; bump < format_bumps ; bump++ )); do
-    section "Format Bump: $(( bump + 1 )) of ${format_bumps}"
-
-    ds_fmt=$(( DS_FORMAT + bump ))
-    ds_fmt_next=$(( ds_fmt + 1 ))
-    log "Downstream Format" "From: ${ds_fmt} To: ${ds_fmt_next}"
-
-    up_fmt=$(( DS_UP_FORMAT + bump ))
-    up_fmt_next=$(( up_fmt + 1 ))
-    log "Upstream Format" "From: ${up_fmt} To: ${up_fmt_next}"
-
-    # Get the First version for Upstream Next Format
-    up_ver_next=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt_next}/first") || true
-    if [[ -z ${up_ver_next} ]]; then
-        error "Failed to get First version for Upstream Format: ${up_fmt_next}!"
-        exit 2
+if "${IS_UPSTREAM}"; then
+    section "Bootstrapping Mix Workspace"
+    if [[ ! -e builder.conf ]]; then
+        # shellcheck disable=SC2153
+        mixer_cmd init --clear-version "${MIX_VERSION}" --mix-version "${MIX_VERSION}" --format "${MIX_FORMAT}"
     fi
-    # Calculate the matching Downstream version
-    ds_ver_next=$(( up_ver_next * 1000 + MIX_INCREMENT * 2 ))
+    mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
+    mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
-    # Get the Latest version for Upstream "current" Format
-    up_ver=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt}/latest") || true
-    if [[ -z ${up_ver} ]]; then
-        error "Failed to get Latest version for Upstream Format: ${up_fmt}."
-        exit 2
+    section "Preparing Content"
+    if [[ -n "${BUNDLES_REPO}" ]]; then
+        fetch_bundles
+    else
+        error "Custom bundles not found" "'BUNDLES_REPO' is empty" 1
+        exit 1
     fi
-    # Calculate the matching Downstream version
-    ds_ver=$(( up_ver * 1000 + MIX_INCREMENT ))
+    if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
+        stage_packages
+    else
+        error "Custom packages not found" "'PKGS_DIR' is empty" 1
+        exit 1
+    fi
 
-    log "+10 Mix:" "${ds_ver} (${ds_fmt}) based on: ${up_ver} (${up_fmt})"
-    log "+20 Mix:" "${ds_ver_next} (${ds_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
-    generate_bump "${up_ver}" "${ds_ver}" "${ds_fmt}" "${up_ver_next}" "${ds_ver_next}" "${ds_fmt_next}"
-
-    MCA_VERSIONS+=" ${ds_ver} ${ds_ver_next}"
-done
-
-if [[ -n "${ds_fmt_next}" ]]; then
-    DS_FORMAT=${ds_fmt_next}
-    var_save DS_FORMAT
-fi
-
-if [[ -z "${ds_ver_next}" || "${MIX_VERSION}" -gt "${ds_ver_next}" ]]; then
-    log_line
-    log "Regular Mix:" "${MIX_VERSION} (${DS_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
-    generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
-
-    MCA_VERSIONS+=" ${MIX_VERSION}"
+    section "Building"
+    MCA_VERSIONS="${DS_LATEST} ${MIX_VERSION}"
+    if ${FORMAT_BUMP}; then
+        mix_ver_next=$(( MIX_VERSION + MIX_INCREMENT ))
+        mix_format_next=$(( MIX_FORMAT + FORMAT_INCREMENT ))
+        generate_bump "${MIX_VERSION}" "${MIX_VERSION}" "${MIX_FORMAT}" "${mix_ver_next}" "${mix_ver_next}" "${mix_format_next}"
+        MCA_VERSIONS+=" ${mix_ver_next}"
+    else
+        generate_mix "${MIX_VERSION}" "${MIX_VERSION}" "${MIX_FORMAT}"
+    fi
+    var_save MCA_VERSIONS
 else
-    MIX_VERSION=${ds_ver_next}
-    # shellcheck disable=SC2034
-    MIX_UP_VERSION=${MIX_VERSION: : -3}
-    # shellcheck disable=SC2034
-    MIX_DOWN_VERSION=${MIX_VERSION: -3}
+    section "Bootstrapping Mix Workspace"
+    mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
+    mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
+    mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
-    var_save MIX_VERSION
-    var_save MIX_UP_VERSION
-    var_save MIX_DOWN_VERSION
+    log_line "Looking for previous releases:"
+    if [[ -z ${DS_LATEST} ]]; then
+        log_line "None found. This will be the first Mix!" 1
+        DS_UP_FORMAT=${CLR_FORMAT}
+        # shellcheck disable=SC2034
+        DS_UP_VERSION=${CLR_LATEST}
+
+        var_save DS_UP_FORMAT
+        var_save DS_UP_VERSION
+    fi
+
+    MCA_VERSIONS="${DS_LATEST}"
+
+    section "Preparing Downstream Content"
+    if [[ -z "${BUNDLES_REPO}" ]]; then
+        info "Custom bundles not found" "'BUNDLES_REPO' is empty"
+    else
+        fetch_bundles # Download the Downstream Bundles Repository
+    fi
+
+    log_line "Checking Downstream Repo:"
+    if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
+        mixer_cmd config set Mixer.LOCAL_RPM_DIR "${PKGS_DIR}"
+        mixer_cmd add-rpms > /dev/null
+        log_line "Content found. Adding it to the mix!" 1
+    else
+        log_line "Content not found. Skipping it." 1
+    fi
+
+    section "Building"
+    format_bumps=$(( CLR_FORMAT - DS_UP_FORMAT ))
+    (( format_bumps )) && info "Format Bumps will be needed"
+    #TODO: Check for required mixer version for the bump here
+
+    for (( bump=0 ; bump < format_bumps ; bump++ )); do
+        section "Format Bump: $(( bump + 1 )) of ${format_bumps}"
+
+        ds_fmt=$(( DS_FORMAT + bump ))
+        ds_fmt_next=$(( ds_fmt + 1 ))
+        log "Downstream Format" "From: ${ds_fmt} To: ${ds_fmt_next}"
+
+        up_fmt=$(( DS_UP_FORMAT + bump ))
+        up_fmt_next=$(( up_fmt + 1 ))
+        log "Upstream Format" "From: ${up_fmt} To: ${up_fmt_next}"
+
+        # Get the First version for Upstream Next Format
+        up_ver_next=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt_next}/first") || true
+        if [[ -z ${up_ver_next} ]]; then
+            error "Failed to get First version for Upstream Format: ${up_fmt_next}!"
+            exit 2
+        fi
+        # Calculate the matching Downstream version
+        ds_ver_next=$(( up_ver_next * 1000 + MIX_INCREMENT * 2 ))
+
+        # Get the Latest version for Upstream "current" Format
+        up_ver=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt}/latest") || true
+        if [[ -z ${up_ver} ]]; then
+            error "Failed to get Latest version for Upstream Format: ${up_fmt}."
+            exit 2
+        fi
+        # Calculate the matching Downstream version
+        ds_ver=$(( up_ver * 1000 + MIX_INCREMENT ))
+
+        log "+10 Mix:" "${ds_ver} (${ds_fmt}) based on: ${up_ver} (${up_fmt})"
+        log "+20 Mix:" "${ds_ver_next} (${ds_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
+        generate_bump "${up_ver}" "${ds_ver}" "${ds_fmt}" "${up_ver_next}" "${ds_ver_next}" "${ds_fmt_next}"
+
+        MCA_VERSIONS+=" ${ds_ver} ${ds_ver_next}"
+    done
+
+    if [[ -n "${ds_fmt_next}" ]]; then
+        DS_FORMAT=${ds_fmt_next}
+        var_save DS_FORMAT
+    fi
+
+    if [[ -z "${ds_ver_next}" || "${MIX_VERSION}" -gt "${ds_ver_next}" ]]; then
+        log_line
+        log "Regular Mix:" "${MIX_VERSION} (${DS_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
+        generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
+
+        MCA_VERSIONS+=" ${MIX_VERSION}"
+    else
+        MIX_VERSION=${ds_ver_next}
+        # shellcheck disable=SC2034
+        MIX_UP_VERSION=${MIX_VERSION: : -3}
+        # shellcheck disable=SC2034
+        MIX_DOWN_VERSION=${MIX_VERSION: -3}
+
+        var_save MIX_VERSION
+        var_save MIX_UP_VERSION
+        var_save MIX_DOWN_VERSION
+    fi
+
+    var_save MCA_VERSIONS
 fi
 
-var_save MCA_VERSIONS
 
 popd > /dev/null
