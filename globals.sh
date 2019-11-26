@@ -30,8 +30,8 @@ REPO_DIR="${WORK_DIR}/repo"
 VARS_DIR="${WORK_DIR}/.vars"
 
 BUILD_ARCH="${BUILD_ARCH:-x86_64}"
-PKGS_DIR="${REPO_DIR}/${BUILD_ARCH}/os/packages"
-PKGS_DIR_SUFFIX="repo/${BUILD_ARCH}/os/packages"
+PKGS_DIR_SUFFIX="${BUILD_ARCH}/os/packages"
+PKGS_DIR="${REPO_DIR}/${PKGS_DIR_SUFFIX}"
 
 BUILD_FILE=build-env
 BUNDLES_FILE=bundles-def
