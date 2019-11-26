@@ -267,19 +267,15 @@ else
     MCA_VERSIONS="${DS_LATEST}"
 
     section "Preparing Downstream Content"
-    if [[ -z "${BUNDLES_REPO}" ]]; then
-        info "Custom bundles not found" "'BUNDLES_REPO' is empty"
+    if [[ -n "${BUNDLES_REPO}" ]]; then
+        fetch_bundles
     else
-        fetch_bundles # Download the Downstream Bundles Repository
+        info "Custom bundles not found" "'BUNDLES_REPO' is empty" 1
     fi
-
-    log_line "Checking Downstream Repo:"
     if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
-        mixer_cmd config set Mixer.LOCAL_RPM_DIR "${PKGS_DIR}"
-        mixer_cmd add-rpms > /dev/null
-        log_line "Content found. Adding it to the mix!" 1
+        stage_packages
     else
-        log_line "Content not found. Skipping it." 1
+        info "Custom packages not found" "'PKGS_DIR' is empty" 1
     fi
 
     section "Building"
