@@ -84,7 +84,7 @@ build_deltas() {
     fi
 
     if (( NUM_DELTA_BUILDS > 0 )); then
-        log "Building deltas for the previous ${NUM_DELTA_BUILDS} builds..." 1
+        log "Building deltas for the previous ${NUM_DELTA_BUILDS} builds..."
         sudo_mixer_cmd build delta-packs --previous-versions "${NUM_DELTA_BUILDS}"
         sudo_mixer_cmd build delta-manifests --previous-versions "${NUM_DELTA_BUILDS}"
     else
