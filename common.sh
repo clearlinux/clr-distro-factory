@@ -131,7 +131,7 @@ calc_mix_version() {
 # =================
 
 curl() {
-    command curl --silent --fail "$@"
+    command curl --silent --fail --show-error "$@"
 }
 
 koji_cmd() {
