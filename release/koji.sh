@@ -17,6 +17,8 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 # ==============================================================================
 stage "Content Provider - Koji"
 
+assert_dep koji
+
 pkg_list="${WORK_DIR}/${PKG_LIST_TMP}koji"
 
 log_line "Fetching Package List:"
