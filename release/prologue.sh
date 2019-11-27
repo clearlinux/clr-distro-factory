@@ -27,6 +27,7 @@ LOG_INDENT=1 fetch_config_repo
 
 rm -rf "${WORK_DIR}"
 mkdir -p "${WORK_DIR}"/release/{config,images}
+
 mkdir -p "${PKGS_DIR}"
 
 mkdir -p "${MIXER_DIR}"
@@ -63,7 +64,28 @@ Upstream URL:
     ${CLR_PUBLIC_DL_URL}
 Upstream Bundles:
     ${CLR_BUNDLES:-"All"}
+EOL
 
+echo
+echo "== Signing =="
+echo "Custom update signing provided?"
+if function_exists sign_update; then
+    echo "    Yes!"
+    cp -f "${SWUPD_CERT:?"SWUPD_CERT Cannot be Null/Unset"}" "${MIXER_DIR}/Swupd_Root.pem"
+    echo "Swupd cert:"
+    echo "    ${SWUPD_CERT}"
+else
+    echo "    No!"
+fi
+echo "Custom image signing provided?"
+if function_exists sign_image; then
+    echo "    Yes!"
+else
+    echo "    No!"
+fi
+echo
+
+cat <<EOL
 == Workspace ==
 Namespace:
     ${NAMESPACE}

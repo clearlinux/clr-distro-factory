@@ -37,9 +37,9 @@ checksum_and_sign() {
 
         _output+="${file} ${chksum_file} " # space is not a mistake
 
-        if [[ -n "${IMG_SIGN_CMD}" ]]; then
+        if function_exists sign_image; then
             log "Signing (custom)" "${chksum_file}"
-            "${IMG_SIGN_CMD}" "${chksum_file}" "${chksum_file}.sig"
+            sign_image "${chksum_file}" "${chksum_file}.sig"
         elif [[ -s "${IMG_SIGN_KEY}" ]]; then
             log "Signing (openssl)" "${chksum_file}"
             openssl dgst -sha1 -sign "${IMG_SIGN_KEY}" -out "${chksum_file}.sig" "${chksum_file}"

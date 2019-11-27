@@ -44,7 +44,13 @@ build_bundles() {
 
     log_line "Building Bundles:"
     log_line
-    sudo_mixer_cmd build bundles
+    local mixer_opts_bundles=""
+    if function_exists sign_update; then
+        mixer_opts_bundles+=" --no-signing"
+    fi
+
+    # shellcheck disable=SC2086
+    sudo_mixer_cmd build bundles ${mixer_opts_bundles}
     log_line
 }
 
@@ -52,10 +58,24 @@ build_update() {
     local mix_ver="$1"
 
     section "Build 'Update' Content"
+
+    local mixer_opts_update="--skip-format-check"
     if "${MIN_VERSION}"; then
-        sudo_mixer_cmd build update --skip-format-check --min-version="${mix_ver}"
-    else
-        sudo_mixer_cmd build update --skip-format-check
+        mixer_opts_update+=" --min-version=${mix_ver}"
+    fi
+    if function_exists sign_update; then
+        mixer_opts_update+=" --no-signing"
+    fi
+
+    # shellcheck disable=SC2086
+    sudo_mixer_cmd build update ${mixer_opts_update}
+
+    if function_exists sign_update; then
+        pushd "update/www/${mix_ver}" > /dev/null
+        sign_update Manifest.MoM Manifest.MoM.sig
+        sudo rm -f Manifest.MoM.tar
+        sudo tar -cJf Manifest.MoM.tar Manifest.MoM Manifest.MoM.sig
+        popd > /dev/null
     fi
 }
 
