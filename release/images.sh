@@ -59,7 +59,7 @@ finalize_image() {
     # ${3} - List of image files to be finalized
     declare -n _output=${1}
     local name=${2}
-    local file_list=("${3}")
+    local file_list="${3}"
     local finalize_script="$(find "${TEMPLATES_PATH}" -name "${name%.*}-finalize.*" -print -quit)"
 
     if [[ -z "${name}" ]]; then
@@ -68,7 +68,7 @@ finalize_image() {
     fi
 
     local finalized_list
-    for image_file in "${file_list[@]}"; do
+    for image_file in ${file_list}; do
         if [[ -s "${finalize_script}" ]]; then
             if ! finalized_list=$("${finalize_script}" "${image_file}"); then
                 error "${name}" "Image finalization failed"
