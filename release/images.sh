@@ -105,7 +105,7 @@ create_image() {
 
     sudo -E clr-installer --config "${image}" --log-level=4 \
         --swupd-format "${DS_FORMAT}" --swupd-clean \
-        --swupd-cert "${MIXER_DIR}/Swupd_Root.pem" \
+        --swupd-cert "${SWUPD_CERT}" \
         --swupd-contenturl "file://${MIXER_DIR}/update/www" \
         --swupd-versionurl "file://${MIXER_DIR}/update/www" \
         --log-file "${log_file}" &> /dev/null

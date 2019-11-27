@@ -17,6 +17,7 @@ CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}
 
 # Mixer
 MIX_INCREMENT=${MIX_INCREMENT:-10}
+SWUPD_CERT=${SWUPD_CERT:-"${MIXER_DIR}/Swupd_Root.pem"}
 # Global options to apply to all mixer calls
 MIXER_OPTS=${MIXER_OPTS:-""}
 # Number of builds from the current build to generate deltas
