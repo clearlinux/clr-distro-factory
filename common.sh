@@ -24,6 +24,10 @@ assert_file() {
     [[ -f $1 ]] > /dev/null 2>&1 || { error "file '$1' not found"; exit 1; }
 }
 
+function_exists() {
+    [[ "$(type -t "${1}")" == 'function' ]]
+}
+
 silentkill () {
     if [ -n "$2" ]; then
         kill "$2" "$1" > /dev/null 2>&1 || true

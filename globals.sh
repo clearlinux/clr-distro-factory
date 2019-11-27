@@ -47,5 +47,5 @@ RELEASE_NOTES=release-notes
 # Space-separated
 LICENSES_FILTER=${LICENSES_FILTER-"and"}
 
-# sign_image requirements
+# Images
 CHKSUM_FILE_SUFFIX=${CHKSUM_FILE_SUFFIX:-"SHA512SUM"}
