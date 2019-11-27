@@ -25,10 +25,9 @@ fi
 
 fetch_bundles() {
     log_line "Fetching bundles:"
-    local bundles_dir="${WORK_DIR}/bundles"
-    git clone --quiet "${BUNDLES_REPO}" "${bundles_dir}"
+    git clone --quiet "${BUNDLES_REPO}" "${BUNDLES_DIR}"
     rm -rf ./local-bundles
-    mv "${bundles_dir}/${BUNDLES_REPO_SRC_DIR}" ./local-bundles
+    cp -r "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" ./local-bundles
     log_line "OK!" 1
 }
 
@@ -219,7 +218,7 @@ fi
 
 MCA_VERSIONS="${DS_LATEST}"
 
-section "Preparing Downstream Content"
+section "Preparing Mixer Content"
 if [[ -z "${BUNDLES_REPO}" ]]; then
     info "Custom bundles not found" "'BUNDLES_REPO' is empty"
 else

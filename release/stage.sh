@@ -14,7 +14,6 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load MIX_VERSION
 
-bundles_dir="${MIXER_DIR}/local-bundles"
 release_dir="${WORK_DIR}/release"
 bundles_tag="${NAMESPACE:-${DISTRO_NAME}}-${MIX_VERSION}"
 
@@ -26,7 +25,6 @@ stage "Staging Release"
 assert_dir "${REPO_DIR}"
 assert_dir "${STAGING_DIR}"
 
-assert_dir "${bundles_dir}"
 assert_dir "${release_dir}"
 
 section "Copying Artifacts"
@@ -40,9 +38,9 @@ mv "${WORK_DIR}/${MCA_FILE}-"*.txt "${release_dir}/" 2>/dev/null || true # preve
 mv "${REPO_DIR}/" "${release_dir}/repo/"
 cp -a "${MIXER_DIR}/Swupd_Root.pem" "${release_dir}/config/"
 
-if [[ -n "${BUNDLES_REPO}" ]]; then
-    git -C "${bundles_dir}" archive --format='tar.gz' --prefix='bundles/' \
-        -o "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" HEAD > /dev/null 2>&1
+if [[ -d "${BUNDLES_DIR}" ]]; then
+    git -C "${BUNDLES_DIR}" archive --format='tar.gz' --prefix='bundles/' \
+        -o "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" HEAD "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" > /dev/null 2>&1
     tar xf "${release_dir}/${BUNDLES_FILE}-${MIX_VERSION}.tar.gz" -C "${release_dir}/config/"
 fi
 
@@ -80,9 +78,9 @@ git -C config tag -f "${MIX_VERSION}"
 git -C config push --quiet -f --tags origin
 log_line "Tag: ${MIX_VERSION}. OK!" 1
 
-if [[ -n "${BUNDLES_REPO}" ]]; then
-    log_line "Downstream Bundles Repository:"
-    git -C "${bundles_dir}" tag -f "${bundles_tag}"
-    git -C "${bundles_dir}" push --quiet -f --tags origin
+if [[ -d "${BUNDLES_DIR}" ]]; then
+    log_line "Bundles Repository:"
+    git -C "${BUNDLES_DIR}" tag -f "${bundles_tag}"
+    git -C "${BUNDLES_DIR}" push --quiet -f --tags origin
     log_line "Tag: ${bundles_tag}. OK!" 1
 fi

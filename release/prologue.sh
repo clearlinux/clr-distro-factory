@@ -73,6 +73,8 @@ Variables dir:
     ${VARS_DIR}
 Repository dir:
     ${REPO_DIR}
+Bundles dir:
+    ${BUNDLES_DIR}
 Packages dir:
     ${PKGS_DIR}
 Mixer dir:
