@@ -32,26 +32,38 @@ silentkill () {
     fi
 }
 
-fetch_config_repo() {
-    log_line "Config Repository:"
+fetch_git_repo() {
+    local repo="${1}"
+    local dir_name="${2}"
 
-    if [[ ! -d ./config ]]; then
-        local REPO_HOST=${CONFIG_REPO_HOST:?"CONFIG_REPO_HOST cannot be Null/Unset"}
-        local REPO_NAME=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
+    if (( $# != 2 )); then
+        error "'fetch_git_repo' requires 2 arguments!"
+        return 1
+    fi
+
+    if [[ ! -d "./${dir_name}" ]]; then
         log_line "Cloning..." 1
-        git clone --quiet "${REPO_HOST}${REPO_NAME}" config
+        git clone --quiet "${repo}" "${dir_name}"
         log_line "OK!" 2
     else
         log_line "Updating..." 1
-        pushd ./config > /dev/null
-        git fetch --prune -P --quiet origin
-        git reset --hard --quiet origin/master
-        popd > /dev/null
+        git -C "./${dir_name}" fetch --prune -P --quiet origin
+        git -C "./${dir_name}" reset --hard --quiet origin/master
         log_line "OK!" 2
     fi
 
+    log_line "$(git -C "./${dir_name}" remote get-url origin) ($(git -C "./${dir_name}" rev-parse --short HEAD))" 1
+}
+
+fetch_config_repo() {
+    log_line "Config Repository:"
+
+    local REPO_HOST=${CONFIG_REPO_HOST:?"CONFIG_REPO_HOST cannot be Null/Unset"}
+    local REPO_NAME=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
+
+    fetch_git_repo "${REPO_HOST}${REPO_NAME}" "config"
+
     pushd ./config > /dev/null
-    log_line "$(git remote get-url origin) ($(git rev-parse --short HEAD))" 1
     log_line "Checking for the required file..." 1
     assert_file ./config.sh
     log_line "OK!" 2
