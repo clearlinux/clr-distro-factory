@@ -23,14 +23,6 @@ if "${IS_UPSTREAM}" && [[ ${MIXER_OPTS} != *"--offline"* ]]; then
     MIXER_OPTS="${MIXER_OPTS} --offline"
 fi
 
-fetch_bundles() {
-    log_line "Fetching bundles:"
-    git clone --quiet "${BUNDLES_REPO}" "${BUNDLES_DIR}"
-    rm -rf ./local-bundles
-    cp -r "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" ./local-bundles
-    log_line "OK!" 1
-}
-
 build_bundles() {
     section "Bundles"
     log_line "Updating Bundles List:"
@@ -218,14 +210,20 @@ fi
 
 MCA_VERSIONS="${DS_LATEST}"
 
-section "Preparing Mixer Content"
-if [[ -z "${BUNDLES_REPO}" ]]; then
-    info "Custom bundles not found" "'BUNDLES_REPO' is empty"
+section "Preparing Mix Content"
+
+log_line "Checking Bundles:"
+rm -rf ./local-bundles
+if [[ -d "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" ]] \
+    && [[ -n "$(ls -A "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}")" ]]; then
+    cp -r "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" ./local-bundles
+    log_line "Bundles found. Adding it to the mix!" 1
 else
-    fetch_bundles # Download the Downstream Bundles Repository
+    mkdir ./local-bundles
+    log_line "Bundles not found. Skipping it." 1
 fi
 
-log_line "Checking Downstream Repo:"
+log_line "Checking Packages Repo:"
 if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
     mixer_cmd config set Mixer.LOCAL_RPM_DIR "${PKGS_DIR}"
     mixer_cmd add-rpms > /dev/null
