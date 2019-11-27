@@ -32,3 +32,10 @@ fi
 log_line # Output too verbose
 createrepo_c "${REPO_DIR}/x86_64/os" # TODO: log create_repo output and only print its result
 log_line
+
+section "Fetching Bundles"
+if [[ -n "${BUNDLES_REPO}" ]]; then
+    fetch_git_repo "${BUNDLES_REPO}" "${BUNDLES_DIR}"
+else
+    info "Local bundles not found" "'BUNDLES_REPO' is empty"
+fi
