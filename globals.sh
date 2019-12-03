@@ -11,6 +11,8 @@ WORK_DIR=${WORK_DIR:-"${PWD}/${NAMESPACE}/work"}
 IS_UPSTREAM=${IS_UPSTREAM:-false}
 # If this build should be a min version
 MIN_VERSION=${MIN_VERSION:-false}
+# If this build should be a format bump
+FORMAT_BUMP=${FORMAT_BUMP:-false}
 
 # Servers
 CLR_PUBLIC_DL_URL=${CLR_PUBLIC_DL_URL:-"https://download.clearlinux.org"}

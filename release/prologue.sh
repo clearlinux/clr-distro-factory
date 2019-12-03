@@ -106,35 +106,65 @@ Stage dir:
 EOL
 
 section "Versions"
-get_latest_versions
-var_save CLR_FORMAT
-var_save CLR_LATEST
-var_save DS_DOWN_VERSION
-var_save MIX_FORMAT
-var_save DS_LATEST
-var_save DS_UP_FORMAT
-var_save DS_UP_VERSION
 
-echo "Latest Upstream version (format):"
-echo "    ${CLR_LATEST} (${CLR_FORMAT})"
-echo "Latest Downstream version (format):"
-if [[ -z ${DS_LATEST} ]]; then
-    echo "    First Mix! (0)"
+if ${IS_UPSTREAM}; then
+    # HACK to get mixer to work with both upstreams and downstreams
+    get_upstream_version
+    var_save CLR_FORMAT
+    var_save CLR_LATEST
+
+    ds_latest_file="${MIXER_DIR}/update/www/version/latest_version"
+    if [[ -s "${ds_latest_file}" ]]; then
+        DS_LATEST="$(< "${ds_latest_file}")"
+        MIX_VERSION=$(( DS_LATEST + MIX_INCREMENT ))
+    else
+        DS_LATEST=""
+        # Needed because mixer init puts mix at version 10, and need to update
+        # version to a value greater than 10 for the command to work properly
+        MIX_VERSION=$(( 10 + MIX_INCREMENT ))
+    fi
+    var_save DS_LATEST
+    var_save MIX_VERSION
+
+    ds_format_file="${MIXER_DIR}/update/www/${DS_LATEST}/format"
+    if [[ -s "${ds_format_file}" ]]; then
+        MIX_FORMAT="$(< "${ds_format_file}")"
+    else
+        # shellcheck disable=SC2034
+        MIX_FORMAT=1
+    fi
+    var_save MIX_FORMAT
 else
-    echo "    ${DS_UP_VERSION} ${DS_DOWN_VERSION} (${MIX_FORMAT})"
-    echo "Based on Upstream Version:"
-    echo "    ${DS_UP_VERSION} (${DS_UP_FORMAT})"
+    get_latest_versions
+    var_save CLR_FORMAT
+    var_save CLR_LATEST
+    var_save DS_DOWN_VERSION
+    var_save MIX_FORMAT
+    var_save DS_LATEST
+    var_save DS_UP_FORMAT
+    var_save DS_UP_VERSION
+
+    echo "Latest Upstream version (format):"
+    echo "    ${CLR_LATEST} (${CLR_FORMAT})"
+    echo "Latest Downstream version (format):"
+    if [[ -z ${DS_LATEST} ]]; then
+        echo "    First Mix! (0)"
+    else
+        echo "    ${DS_UP_VERSION} ${DS_DOWN_VERSION} (${MIX_FORMAT})"
+        echo "Based on Upstream Version:"
+        echo "    ${DS_UP_VERSION} (${DS_UP_FORMAT})"
+    fi
+    echo "Mix Increment:"
+    echo "    ${MIX_INCREMENT}"
+
+    calc_mix_version
+    var_save MIX_VERSION
+    var_save MIX_UP_VERSION
+    var_save MIX_DOWN_VERSION
+
+    echo "Next Downstream Version:"
+    echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${MIX_FORMAT})"
 fi
-echo "Mix Increment:"
-echo "    ${MIX_INCREMENT}"
-
-calc_mix_version
-var_save MIX_VERSION
-var_save MIX_UP_VERSION
-var_save MIX_DOWN_VERSION
-
-echo "Next Downstream Version:"
-echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${MIX_FORMAT})"
 echo "Should this build be a MIN version?"
 if ${MIN_VERSION}; then
     echo "    Yes!"
