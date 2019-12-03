@@ -110,7 +110,7 @@ get_latest_versions
 var_save CLR_FORMAT
 var_save CLR_LATEST
 var_save DS_DOWN_VERSION
-var_save DS_FORMAT
+var_save MIX_FORMAT
 var_save DS_LATEST
 var_save DS_UP_FORMAT
 var_save DS_UP_VERSION
@@ -121,7 +121,7 @@ echo "Latest Downstream version (format):"
 if [[ -z ${DS_LATEST} ]]; then
     echo "    First Mix! (0)"
 else
-    echo "    ${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})"
+    echo "    ${DS_UP_VERSION} ${DS_DOWN_VERSION} (${MIX_FORMAT})"
     echo "Based on Upstream Version:"
     echo "    ${DS_UP_VERSION} (${DS_UP_FORMAT})"
 fi
@@ -134,7 +134,7 @@ var_save MIX_UP_VERSION
 var_save MIX_DOWN_VERSION
 
 echo "Next Downstream Version:"
-echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
+echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${MIX_FORMAT})"
 echo "Should this build be a MIN version?"
 if ${MIN_VERSION}; then
     echo "    Yes!"

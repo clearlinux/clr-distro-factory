@@ -14,7 +14,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 . ./config/config.sh
 
 var_load DS_DOWN_VERSION
-var_load DS_FORMAT
+var_load MIX_FORMAT
 var_load DS_LATEST
 var_load DS_UP_VERSION
 var_load MIX_VERSION
@@ -90,7 +90,7 @@ EOL
 
     if [[ -n ${DS_LATEST} ]]; then
         log "PREVIOUS VERSION" \
-            "${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})" >> ${RELEASE_NOTES}
+            "${DS_UP_VERSION} ${DS_DOWN_VERSION} (${MIX_FORMAT})" >> ${RELEASE_NOTES}
         log_line >> ${RELEASE_NOTES}
     fi
 
