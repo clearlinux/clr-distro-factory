@@ -45,18 +45,18 @@ fetch_git_repo() {
         return 1
     fi
 
-    if [[ ! -d "./${dir_name}" ]]; then
+    if [[ ! -d "${dir_name}" ]]; then
         log_line "Cloning..." 1
         git clone --quiet "${repo}" "${dir_name}"
         log_line "OK!" 2
     else
         log_line "Updating..." 1
-        git -C "./${dir_name}" fetch --prune -P --quiet origin
-        git -C "./${dir_name}" reset --hard --quiet origin/master
+        git -C "${dir_name}" fetch --prune -P --quiet origin
+        git -C "${dir_name}" reset --hard --quiet origin/master
         log_line "OK!" 2
     fi
 
-    log_line "$(git -C "./${dir_name}" remote get-url origin) ($(git -C "./${dir_name}" rev-parse --short HEAD))" 1
+    log_line "$(git -C "${dir_name}" remote get-url origin) ($(git -C "${dir_name}" rev-parse --short HEAD))" 1
 }
 
 fetch_config_repo() {
