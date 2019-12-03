@@ -72,6 +72,7 @@ build_update() {
 
     if function_exists sign_update; then
         pushd "update/www/${mix_ver}" > /dev/null
+        log "Signing update (custom)" "${PWD}/Manifest.MoM"
         sign_update Manifest.MoM Manifest.MoM.sig
         sudo rm -f Manifest.MoM.tar
         sudo tar -cJf Manifest.MoM.tar Manifest.MoM Manifest.MoM.sig
