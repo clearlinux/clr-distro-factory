@@ -8,7 +8,7 @@ koji_STEPS := $(patsubst %.sh,%,$(notdir $(koji_SRC)))
 
 release_CHECKOPTS := --exclude=2013,2024,2155
 release_SRC := $(wildcard $(CURDIR)/release/*.sh)
-release_STEPS := prologue local content mixer mca-check images license_info release_notes stage #skipping: koji publish
+release_STEPS := init-env local content mixer mca-check images license_info release_notes stage #skipping: koji publish
 
 watcher_SRC := $(wildcard $(CURDIR)/watcher/*.sh)
 watcher_STEPS := $(patsubst %.sh,%,$(notdir $(watcher_SRC)))

@@ -7,9 +7,9 @@ pipeline {
     }
 
     stages {
-        stage('Prologue') {
+        stage('Initialize Environment') {
             steps {
-                sh 'release/prologue.sh'
+                sh 'release/init-env.sh'
             }
         }
         stage('Setup Content') {

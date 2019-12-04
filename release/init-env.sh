@@ -19,7 +19,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 # ==============================================================================
 # MAIN
 # ==============================================================================
-stage "Prologue"
+stage "Initialization"
 log_line "Sanitizing work environment..."
 
 LOG_INDENT=1 fetch_config_repo
