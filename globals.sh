@@ -7,8 +7,9 @@ NAMESPACE=${NAMESPACE:?"NAMESPACE cannot be Null/Unset"}
 WORK_DIR=${WORK_DIR:-"${PWD}/${NAMESPACE}/work"}
 
 # Distribution
-# If this update stream is either an upstream or a downstream
-IS_UPSTREAM=${IS_UPSTREAM:-false}
+# If this update stream is either a downstream or an upstream
+# A Downstream Mix makes reference to an external update stream to reuse content
+IS_DOWNSTREAM=${IS_DOWNSTREAM:-true}
 # If this build should be a min version
 MIN_VERSION=${MIN_VERSION:-false}
 

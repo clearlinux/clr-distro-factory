@@ -18,8 +18,8 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load_all
 
-if "${IS_UPSTREAM}" && [[ ${MIXER_OPTS} != *"--offline"* ]]; then
-    log "'IS_UPSTREAM' flag is set" "Setting '--offline' flag to mixer"
+if ! "${IS_DOWNSTREAM}" && [[ ${MIXER_OPTS} != *"--offline"* ]]; then
+    log "'IS_DOWNSTREAM' flag is not set" "Setting '--offline' flag to mixer"
     MIXER_OPTS="${MIXER_OPTS} --offline"
 fi
 
@@ -31,7 +31,7 @@ build_bundles() {
     rm -f ./mixbundles
 
     log_line
-    if ! "${IS_UPSTREAM}"; then
+    if "${IS_DOWNSTREAM}"; then
         # Add the upstream Bundle definitions for this base version of ClearLinux
         # shellcheck disable=SC2086
         mixer_cmd bundle add ${CLR_BUNDLES:-"--all-upstream"}
@@ -130,10 +130,10 @@ generate_bump() {
     # Remove bundles pending deletion
     section "Bundle Deletion"
     local bundle_folders
-    if "${IS_UPSTREAM}"; then
-        bundle_folders="local-bundles/"
-    else
+    if "${IS_DOWNSTREAM}"; then
         bundle_folders="upstream-bundles/ local-bundles/"
+    else
+        bundle_folders="local-bundles/"
     fi
     # shellcheck disable=SC2086
     for i in $(grep -lir "\\[STATUS\\]: Pending-Delete" ${bundle_folders}); do
