@@ -9,44 +9,44 @@ pipeline {
     stages {
         stage('Initialize Environment') {
             steps {
-                sh 'release/init-env.sh'
+                sh 'build/init-env.sh'
             }
         }
         stage('Setup Content') {
             steps {
-                sh 'release/local.sh'
-                sh 'release/content.sh'
+                sh 'build/koji.sh'
+                sh 'build/content.sh'
             }
         }
         stage('Create Update Stream') {
             steps {
-                sh 'release/mixer.sh'
+                sh 'build/mixer.sh'
             }
         }
         stage('Create Images') {
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh 'release/images.sh'
+                    sh 'build/images.sh'
                 }
             }
         }
         stage('Stage') {
             steps {
-                sh 'release/license_info.sh'
-                sh 'release/release_notes.sh'
-                sh 'release/stage.sh'
+                sh 'build/license_info.sh'
+                sh 'build/release_notes.sh'
+                sh 'build/stage.sh'
             }
         }
         stage('Publish') {
             steps {
-                sh 'release/publish.sh'
+                sh 'build/publish.sh'
             }
         }
     }
 
     post {
         always {
-            echo "Release Pipeline OUT - ${env.BUILD_TAG}"
+            echo "Build Pipeline OUT - ${env.BUILD_TAG}"
         }
     }
 }

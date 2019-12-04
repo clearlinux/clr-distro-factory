@@ -14,8 +14,8 @@ jobs:
     - stage: Static Analysis
       script: make check
 
-    - stage: Make Release
+    - stage: Make Build
       install: docker build --quiet --build-arg UID=$(id -u) --network host --force-rm -t clr-builder .travis
       script:
-        - docker run --rm -v $(pwd):/mnt clr-builder make release
-        - docker run --rm -v $(pwd):/mnt clr-builder make release
+        - docker run --rm -v $(pwd):/mnt clr-builder make build
+        - docker run --rm -v $(pwd):/mnt clr-builder make build
