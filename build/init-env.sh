@@ -119,8 +119,8 @@ else
     log_line "No!" 1
 fi
 
-log "Is this an 'upstream' mix?"
-if ${IS_UPSTREAM}; then
+log "Is this an 'downstream' mix?"
+if ${IS_DOWNSTREAM}; then
     log_line "Yes!" 1
 else
     log_line "No!" 1
