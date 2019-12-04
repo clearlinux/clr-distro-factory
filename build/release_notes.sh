@@ -13,10 +13,12 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 . ./config/config.sh
 
-var_load DS_DOWN_VERSION
 var_load DS_FORMAT
 var_load DS_LATEST
 var_load DS_UP_VERSION
+var_load DS_DOWN_VERSION
+
+var_load MIX_FORMAT
 var_load MIX_VERSION
 var_load MIX_UP_VERSION
 var_load MIX_DOWN_VERSION
@@ -78,13 +80,11 @@ calculate_diffs() {
 generate_release_notes() {
     calculate_diffs
 
-    local distro_format=$(< "${MIXER_DIR}/update/www/${MIX_VERSION}/format")
-
     cat > ${RELEASE_NOTES} << EOL
 Release Notes for ${MIX_VERSION}
 
 DISTRIBUTION VERSION:
-    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${distro_format})
+    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${MIX_FORMAT})
 
 EOL
 

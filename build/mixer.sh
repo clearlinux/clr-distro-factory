@@ -298,14 +298,14 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
 done
 
 if [[ -n "${ds_fmt_next}" ]]; then
-    DS_FORMAT=${ds_fmt_next}
-    var_save DS_FORMAT
+    MIX_FORMAT=${ds_fmt_next}
+    var_save MIX_FORMAT
 fi
 
 if [[ -z "${ds_ver_next}" || "${MIX_VERSION}" -gt "${ds_ver_next}" ]]; then
     log_line
-    log "Regular Mix:" "${MIX_VERSION} (${DS_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
-    generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${DS_FORMAT}"
+    log "Regular Mix:" "${MIX_VERSION} (${MIX_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
+    generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${MIX_FORMAT}"
 
     MCA_VERSIONS+=" ${MIX_VERSION}"
 else

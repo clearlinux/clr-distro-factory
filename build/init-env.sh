@@ -106,10 +106,11 @@ fi
 log "Mix Increment:" "${MIX_INCREMENT}"
 
 calc_mix_version
+var_save MIX_FORMAT
 var_save MIX_VERSION
 var_save MIX_UP_VERSION
 var_save MIX_DOWN_VERSION
-log "Next Version:" "${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
+log "Next Version:" "${MIX_VERSION} (${MIX_FORMAT})"
 
 log "Should this build be a MIN version?"
 if ${MIN_VERSION}; then

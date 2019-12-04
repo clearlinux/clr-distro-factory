@@ -138,6 +138,7 @@ calc_mix_version() {
         exit 1
     fi
 
+    MIX_FORMAT="${DS_FORMAT:-1}"
     MIX_UP_VERSION="${MIX_VERSION: : -3}"
     MIX_DOWN_VERSION="${MIX_VERSION: -3}"
 }

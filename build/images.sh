@@ -15,7 +15,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 . "${SCRIPT_DIR}/../config/config.sh"
 
 var_load MIX_VERSION
-var_load DS_FORMAT
+var_load MIX_FORMAT
 
 IMGS_DIR="${WORK_DIR}/release/images"
 LOG_DIR="${WORK_DIR}/logs"
@@ -104,7 +104,7 @@ create_image() {
     pushd "${WORK_DIR}" > /dev/null
 
     sudo -E clr-installer --config "${image}" --log-level=4 \
-        --swupd-format "${DS_FORMAT}" --swupd-clean \
+        --swupd-format "${MIX_FORMAT}" --swupd-clean \
         --swupd-cert "${MIXER_DIR}/Swupd_Root.pem" \
         --swupd-contenturl "file://${MIXER_DIR}/update/www" \
         --swupd-versionurl "file://${MIXER_DIR}/update/www" \
@@ -180,7 +180,7 @@ mkdir -p "${LOG_DIR}"
 export IMGS_DIR
 export LOG_DIR
 export MIX_VERSION
-export DS_FORMAT
+export MIX_FORMAT
 export SCRIPT_DIR
 export TEMPLATES_PATH
 export -f create_image
