@@ -78,13 +78,13 @@ calculate_diffs() {
 generate_release_notes() {
     calculate_diffs
 
-    local downstream_format=$(< "${MIXER_DIR}/update/www/${MIX_VERSION}/format")
+    local distro_format=$(< "${MIXER_DIR}/update/www/${MIX_VERSION}/format")
 
     cat > ${RELEASE_NOTES} << EOL
 Release Notes for ${MIX_VERSION}
 
-DOWNSTREAM VERSION:
-    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${downstream_format})
+DISTRIBUTION VERSION:
+    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${distro_format})
 
 EOL
 

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
-# DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
+# DS_BUNDLES:  Subset of bundles to be used from local (instead of all)
 
 # shellcheck source=common.sh
 # shellcheck disable=SC2013
@@ -37,7 +37,7 @@ build_bundles() {
         mixer_cmd bundle add ${CLR_BUNDLES:-"--all-upstream"}
     fi
 
-    # Add the downstream Bundle definitions
+    # Add the local Bundle definitions
     # shellcheck disable=SC2086
     mixer_cmd bundle add ${DS_BUNDLES:-"--all-local"}
     log_line
@@ -266,7 +266,7 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
 
     ds_fmt=$(( DS_FORMAT + bump ))
     ds_fmt_next=$(( ds_fmt + 1 ))
-    log "Downstream Format" "From: ${ds_fmt} To: ${ds_fmt_next}"
+    log "Distribution Format" "From: ${ds_fmt} To: ${ds_fmt_next}"
 
     up_fmt=$(( DS_UP_FORMAT + bump ))
     up_fmt_next=$(( up_fmt + 1 ))
@@ -278,7 +278,7 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
         error "Failed to get First version for Upstream Format: ${up_fmt_next}!"
         exit 2
     fi
-    # Calculate the matching Downstream version
+    # Calculate the matching Distribution version
     ds_ver_next=$(( up_ver_next * 1000 + MIX_INCREMENT * 2 ))
 
     # Get the Latest version for Upstream "current" Format
@@ -287,7 +287,7 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
         error "Failed to get Latest version for Upstream Format: ${up_fmt}."
         exit 2
     fi
-    # Calculate the matching Downstream version
+    # Calculate the matching Distribution version
     ds_ver=$(( up_ver * 1000 + MIX_INCREMENT ))
 
     log "+10 Mix:" "${ds_ver} (${ds_fmt}) based on: ${up_ver} (${up_fmt})"

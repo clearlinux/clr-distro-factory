@@ -5,7 +5,7 @@
 
 # CLR_LATEST:  Mix against a specific Upstream version instead of latest
 # CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
-# DS_BUNDLES:  Subset of bundles to be used from downstream (instead of all)
+# DS_BUNDLES:  Subset of bundles to be used from local (instead of all)
 # MIN_VERSION: If this build should be a min version
 
 # shellcheck source=common.sh
@@ -47,12 +47,12 @@ Workflow Config Repository:
 EOL
 
 section "Configuration"
-log "Downstream" "${DISTRO_NAME}"
+log "Distribution" "${DISTRO_NAME}"
 log "Bundles Repository" "${BUNDLES_REPO}"
-log "Downstream Content/Version URL" "${DISTRO_URL}"
-log "Downstream Koji Server" "${KOJI_URL}"
-log "Downstream Koji Tag" "${KOJI_TAG}"
-log "Downstream Bundles" "${DS_BUNDLES:-"All"}"
+log "Distribution Content/Version URL" "${DISTRO_URL}"
+log "Distribution Koji Server" "${KOJI_URL}"
+log "Distribution Koji Tag" "${KOJI_TAG}"
+log "Distribution Bundles" "${DS_BUNDLES:-"All"}"
 log "Upstream URL" "${CLR_PUBLIC_DL_URL}"
 log "Upstream Bundles" "${CLR_BUNDLES:-"All"}"
 log "Publishing Host" "${PUBLISHING_HOST}"
@@ -96,7 +96,7 @@ var_save DS_UP_FORMAT
 var_save DS_UP_VERSION
 
 log "Latest Upstream version (format)" "${CLR_LATEST} (${CLR_FORMAT})"
-log "Latest Downstream version (format)"
+log "Latest version (format)"
 if [[ -z ${DS_LATEST} ]]; then
     log_line "First Mix! (0)" 1
 else
@@ -109,7 +109,7 @@ calc_mix_version
 var_save MIX_VERSION
 var_save MIX_UP_VERSION
 var_save MIX_DOWN_VERSION
-log "Next Downstream Version:" "${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
+log "Next Version:" "${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
 
 log "Should this build be a MIN version?"
 if ${MIN_VERSION}; then

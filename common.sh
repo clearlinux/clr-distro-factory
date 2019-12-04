@@ -90,18 +90,18 @@ get_upstream_version() {
     fi
 }
 
-get_downstream_version() {
+get_distro_version() {
     DS_LATEST=$(cat "${STAGING_DIR}/latest" 2>/dev/null) || true
     if [[ -z "${DS_LATEST}" ]]; then
-        info "Failed to fetch Downstream latest version. First Mix?"
+        info "Failed to fetch Distribution latest version. First Mix?"
         DS_FORMAT="${CLR_FORMAT:-1}"
     elif ((${#DS_LATEST} < 4)); then
-        error "Downstream Clear Linux version number seems corrupted."
+        error "Distribution version number seems corrupted."
         exit 2
     else
         DS_FORMAT=$(cat "${STAGING_DIR}/update/${DS_LATEST}/format" 2>/dev/null) || true
         if [[ -z "${DS_FORMAT}" ]]; then
-            error "Failed to fetch Downstream latest format."
+            error "Failed to fetch Distribution latest format."
             exit 2
         fi
 
@@ -110,7 +110,7 @@ get_downstream_version() {
 
         DS_UP_FORMAT=$(curl "${CLR_PUBLIC_DL_URL}/update/${DS_UP_VERSION}/format") || true
         if [[ -z "${DS_UP_FORMAT}" ]]; then
-            error "Failed to fetch Downstream latest base format."
+            error "Failed to fetch Distribution latest base format."
             exit 2
         fi
     fi
@@ -118,7 +118,7 @@ get_downstream_version() {
 
 get_latest_versions() {
     get_upstream_version
-    get_downstream_version
+    get_distro_version
 }
 
 calc_mix_version() {

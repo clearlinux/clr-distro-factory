@@ -1,7 +1,7 @@
 [![Build Status (Travis)](https://api.travis-ci.org/clearlinux/clr-distro-factory.svg?branch=master)](https://travis-ci.org/clearlinux/clr-distro-factory)
 
 # Clear Linux* Distro Factory
-'DevOps' tools for maintaining a 'Downstream Clear'.
+'DevOps' tools for maintaining a 'swupd-based' distribution.
 
 # General Information
 Clear Linux Distro Factory hosts the tools necessary to continuously run the
