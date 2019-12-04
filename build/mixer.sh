@@ -236,22 +236,22 @@ MCA_VERSIONS="${DISTRO_LATEST}"
 
 section "Preparing Mix Content"
 
-log_line "Checking Bundles:"
+log_line "Checking Local Bundles:"
 rm -rf ./local-bundles
 if [[ -d "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" ]] \
     && [[ -n "$(ls -A "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}")" ]]; then
-    cp -r "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" ./local-bundles
     log_line "Bundles found. Adding it to the mix!" 1
+    cp -r "${BUNDLES_DIR}/${BUNDLES_REPO_SRC_DIR}" ./local-bundles
 else
     mkdir ./local-bundles
     log_line "Bundles not found. Skipping it." 1
 fi
 
-log_line "Checking Packages Repo:"
+log_line "Checking Local Packages Repo:"
 if [[ -n "$(ls -A "${PKGS_DIR}")" ]];then
+    log_line "Content found. Adding it to the mix!" 1
     mixer_cmd config set Mixer.LOCAL_RPM_DIR "${PKGS_DIR}"
     mixer_cmd add-rpms > /dev/null
-    log_line "Content found. Adding it to the mix!" 1
 else
     log_line "Content not found. Skipping it." 1
 fi

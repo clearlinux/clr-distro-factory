@@ -15,13 +15,8 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load DISTRO_FORMAT
 var_load DISTRO_LATEST
-var_load DISTRO_UP_VERSION
-var_load DISTRO_DOWN_VERSION
-
 var_load MIX_FORMAT
 var_load MIX_VERSION
-var_load MIX_UP_VERSION
-var_load MIX_DOWN_VERSION
 
 calculate_diffs() {
     local packages_path
@@ -84,13 +79,13 @@ generate_release_notes() {
 Release Notes for ${MIX_VERSION}
 
 DISTRIBUTION VERSION:
-    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${MIX_FORMAT})
+    ${MIX_VERSION} (${MIX_FORMAT})
 
 EOL
 
     if [[ -n ${DISTRO_LATEST} ]]; then
         log "PREVIOUS VERSION" \
-            "${DISTRO_UP_VERSION} ${DISTRO_DOWN_VERSION} (${DISTRO_FORMAT})" >> ${RELEASE_NOTES}
+            "${DISTRO_VERSION} (${DISTRO_FORMAT})" >> ${RELEASE_NOTES}
         log_line >> ${RELEASE_NOTES}
     fi
 
