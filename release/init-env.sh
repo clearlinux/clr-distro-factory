@@ -20,8 +20,8 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 # MAIN
 # ==============================================================================
 stage "Initialization"
-log_line "Sanitizing work environment..."
 
+log_line "Sanitizing work environment..."
 LOG_INDENT=1 fetch_config_repo
 . ./config/config.sh
 
@@ -46,64 +46,44 @@ Workflow Config Repository:
 
 EOL
 
-cat <<EOL
-== Configuration ==
-Downstream:
-    ${DISTRO_NAME}
-Bundles Repository:
-    ${BUNDLES_REPO}
-Downstream Content/Version URL:
-    ${DISTRO_URL}
-Downstream Koji Server:
-    ${KOJI_URL}
-Downstream Koji Tag:
-    ${KOJI_TAG}
-Dowstream Bundles:
-    ${DS_BUNDLES:-"All"}
-Upstream URL:
-    ${CLR_PUBLIC_DL_URL}
-Upstream Bundles:
-    ${CLR_BUNDLES:-"All"}
-EOL
+section "Configuration"
+log "Downstream" "${DISTRO_NAME}"
+log "Bundles Repository" "${BUNDLES_REPO}"
+log "Downstream Content/Version URL" "${DISTRO_URL}"
+log "Downstream Koji Server" "${KOJI_URL}"
+log "Downstream Koji Tag" "${KOJI_TAG}"
+log "Downstream Bundles" "${DS_BUNDLES:-"All"}"
+log "Upstream URL" "${CLR_PUBLIC_DL_URL}"
+log "Upstream Bundles" "${CLR_BUNDLES:-"All"}"
+log "Publishing Host" "${PUBLISHING_HOST}"
+log "Publishing Root" "${PUBLISHING_ROOT}"
 
-echo
-echo "== Signing =="
-echo "Custom update signing provided?"
+section "Signing"
+log_line "Custom update signing provided?"
 if function_exists sign_update; then
-    echo "    Yes!"
+    log_line "Yes!" 1
     cp -f "${SWUPD_CERT:?"SWUPD_CERT Cannot be Null/Unset"}" "${MIXER_DIR}/Swupd_Root.pem"
-    echo "Swupd cert:"
-    echo "    ${SWUPD_CERT}"
+    log "Swupd cert" "${SWUPD_CERT}"
 else
-    echo "    No!"
+    log_line "No!" 1
 fi
-echo "Custom image signing provided?"
-if function_exists sign_image; then
-    echo "    Yes!"
-else
-    echo "    No!"
-fi
-echo
 
-cat <<EOL
-== Workspace ==
-Namespace:
-    ${NAMESPACE}
-Work dir:
-    ${WORK_DIR}
-Variables dir:
-    ${VARS_DIR}
-Repository dir:
-    ${REPO_DIR}
-Bundles dir:
-    ${BUNDLES_DIR}
-Packages dir:
-    ${PKGS_DIR}
-Mixer dir:
-    ${MIXER_DIR}
-Stage dir:
-    ${STAGING_DIR}
-EOL
+log_line "Custom image signing provided?"
+if function_exists sign_image; then
+    log_line "Yes!" 1
+else
+    log_line "No!" 1
+fi
+
+section "Workspace"
+log "Namespace" "${NAMESPACE}"
+log "Work dir" "${WORK_DIR}"
+log "Variables dir" "${VARS_DIR}"
+log "Repository dir" "${REPO_DIR}"
+log "Bundles dir" "${BUNDLES_DIR}"
+log "Packages dir" "${PKGS_DIR}"
+log "Mixer dir" "${MIXER_DIR}"
+log "Stage dir" "${STAGING_DIR}"
 
 section "Versions"
 get_latest_versions
@@ -115,47 +95,42 @@ var_save DS_LATEST
 var_save DS_UP_FORMAT
 var_save DS_UP_VERSION
 
-echo "Latest Upstream version (format):"
-echo "    ${CLR_LATEST} (${CLR_FORMAT})"
-echo "Latest Downstream version (format):"
+log "Latest Upstream version (format)" "${CLR_LATEST} (${CLR_FORMAT})"
+log "Latest Downstream version (format)"
 if [[ -z ${DS_LATEST} ]]; then
-    echo "    First Mix! (0)"
+    log_line "First Mix! (0)" 1
 else
-    echo "    ${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})"
-    echo "Based on Upstream Version:"
-    echo "    ${DS_UP_VERSION} (${DS_UP_FORMAT})"
+    log_line "${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})" 1
+    log "Based on Upstream Version:" "${DS_UP_VERSION} (${DS_UP_FORMAT})"
 fi
-echo "Mix Increment:"
-echo "    ${MIX_INCREMENT}"
+log "Mix Increment:" "${MIX_INCREMENT}"
 
 calc_mix_version
 var_save MIX_VERSION
 var_save MIX_UP_VERSION
 var_save MIX_DOWN_VERSION
+log "Next Downstream Version:" "${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
 
-echo "Next Downstream Version:"
-echo "    ${MIX_UP_VERSION} ${MIX_DOWN_VERSION} (${DS_FORMAT})"
-echo "Should this build be a MIN version?"
+log "Should this build be a MIN version?"
 if ${MIN_VERSION}; then
-    echo "    Yes!"
+    log_line "Yes!" 1
 else
-    echo "    No!"
+    log_line "No!" 1
 fi
 
-echo "Is this an 'upstream' mix?"
+log "Is this an 'upstream' mix?"
 if ${IS_UPSTREAM}; then
-    echo "    Yes!"
+    log_line "Yes!" 1
 else
-    echo "    No!"
+    log_line "No!" 1
 fi
-
-echo
 
 assert_dep mixer
 assert_dep clr-installer
 assert_dep swupd
 assert_dep sha512sum
 
+echo
 tee -a "${WORK_DIR}/${BUILD_FILE}" <<EOL
 == TOOLS ==
 Clear Linux Version (on Builder):
