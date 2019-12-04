@@ -1,0 +1,27 @@
+pipeline {
+    agent { label 'clr-builders' }
+
+    environment {
+        NAMESPACE = "${JOB_NAME}"
+        WORK_DIR = "${WORKSPACE}/work"
+    }
+
+    stages {
+        stage('Initialize Environment') {
+            steps {
+                sh 'release/init-env.sh'
+            }
+        }
+        stage('Publish') {
+            steps {
+                sh 'release/publish.sh'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Release Pipeline OUT - ${env.BUILD_TAG}"
+        }
+    }
+}
