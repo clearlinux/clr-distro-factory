@@ -214,12 +214,8 @@ stage Mixer
 pushd "${MIXER_DIR}" > /dev/null
 
 section "Bootstrapping Mix Workspace"
-mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
-mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
-mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
-
 log_line "Looking for previous releases:"
-if [[ -z ${DS_LATEST} ]]; then
+if [[ -z "${DS_LATEST}" ]]; then
     log_line "None found. This will be the first Mix!" 1
     DS_UP_FORMAT=${CLR_FORMAT}
     # shellcheck disable=SC2034
@@ -227,7 +223,14 @@ if [[ -z ${DS_LATEST} ]]; then
 
     var_save DS_UP_FORMAT
     var_save DS_UP_VERSION
+
+    log_line "Initializing Mixer Workspace"
+    mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
+    log_line ""
 fi
+
+mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
+mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
 MCA_VERSIONS="${DS_LATEST}"
 
