@@ -53,10 +53,17 @@ log "Distribution Content/Version URL" "${DISTRO_URL}"
 log "Distribution Koji Server" "${KOJI_URL}"
 log "Distribution Koji Tag" "${KOJI_TAG}"
 log "Distribution Bundles" "${DISTRO_BUNDLES:-"All"}"
-log "Upstream URL" "${CLR_PUBLIC_DL_URL}"
-log "Upstream Bundles" "${CLR_BUNDLES:-"All"}"
 log "Publishing Host" "${PUBLISHING_HOST}"
 log "Publishing Root" "${PUBLISHING_ROOT}"
+log "Is this an 'downstream' mix?"
+if ${IS_DOWNSTREAM}; then
+    log_line "Yes!" 1
+    log "Upstream URL" "${CLR_PUBLIC_DL_URL}"
+    log "Upstream Bundles" "${CLR_BUNDLES:-"All"}"
+else
+    log_line "No!" 1
+fi
+
 
 section "Signing"
 log_line "Custom update signing provided?"
@@ -86,41 +93,40 @@ log "Mixer dir" "${MIXER_DIR}"
 log "Stage dir" "${STAGING_DIR}"
 
 section "Versions"
-get_latest_versions
-var_save CLR_FORMAT
-var_save CLR_LATEST
-var_save DISTRO_DOWN_VERSION
+if ${IS_DOWNSTREAM}; then
+    get_upstream_version
+    var_save CLR_FORMAT
+    var_save CLR_LATEST
+    log "Latest Upstream version (format)" "${CLR_LATEST} (${CLR_FORMAT})"
+fi
+
+get_distro_version
 var_save DISTRO_FORMAT
 var_save DISTRO_LATEST
 var_save DISTRO_UP_FORMAT
 var_save DISTRO_UP_VERSION
+var_save DISTRO_DOWN_VERSION
 
-log "Latest Upstream version (format)" "${CLR_LATEST} (${CLR_FORMAT})"
-log "Latest version (format)"
+log "Latest Released version (format)"
 if [[ -z ${DISTRO_LATEST} ]]; then
-    log_line "First Mix! (0)" 1
+    log_line "This will be the *First* Mix! (1)" 1
 else
-    log_line "${DISTRO_UP_VERSION} ${DISTRO_DOWN_VERSION} (${DISTRO_FORMAT})" 1
-    log "Based on Upstream Version:" "${DISTRO_UP_VERSION} (${DISTRO_UP_FORMAT})"
+    log_line "${DISTRO_LATEST} (${DISTRO_FORMAT})" 1
+    if ${IS_DOWNSTREAM}; then
+        log "Based on Upstream Version" "${DISTRO_UP_VERSION} (${DISTRO_UP_FORMAT})"
+    fi
 fi
-log "Mix Increment:" "${MIX_INCREMENT}"
+log "Mix Increment" "${MIX_INCREMENT}"
 
 calc_mix_version
 var_save MIX_FORMAT
 var_save MIX_VERSION
 var_save MIX_UP_VERSION
 var_save MIX_DOWN_VERSION
-log "Next Version:" "${MIX_VERSION} (${MIX_FORMAT})"
+log "Next Version" "${MIX_VERSION} (${MIX_FORMAT})"
 
 log "Should this build be a MIN version?"
 if ${MIN_VERSION}; then
-    log_line "Yes!" 1
-else
-    log_line "No!" 1
-fi
-
-log "Is this an 'downstream' mix?"
-if ${IS_DOWNSTREAM}; then
     log_line "Yes!" 1
 else
     log_line "No!" 1
