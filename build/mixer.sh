@@ -291,6 +291,20 @@ downstream_build() {
     fi
 }
 
+upstream_build() {
+    if "${FORMAT_BUMP}"; then
+        mix_10=$(( MIX_VERSION - MIX_INCREMENT ))
+        log "+10 Mix:" "${mix_10} (${DISTRO_FORMAT})"
+        log "+20 Mix:" "${MIX_VERSION} (${MIX_FORMAT})"
+        generate_bump "${mix_10}" "${DISTRO_FORMAT}" "${MIX_VERSION}" "${MIX_FORMAT}"
+        MCA_VERSIONS+=" ${mix_10} ${MIX_VERSION}"
+    else
+        log "Regular Mix" "${MIX_VERSION} (${MIX_FORMAT})"
+        generate_mix "${MIX_VERSION}" "${MIX_FORMAT}"
+        MCA_VERSIONS+=" ${MIX_VERSION}"
+    fi
+}
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -351,7 +365,7 @@ section "Building"
 if "${IS_DOWNSTREAM}"; then
     downstream_build
 else
-    exit 1
+    upstream_build
 fi
 
 var_save MCA_VERSIONS
