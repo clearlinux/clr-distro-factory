@@ -89,7 +89,8 @@ calculate_diffs() {
 #calculating bundles removed 
      bundles_removed=$(awk 'NR==FNR{a[$0];next}!($0 in a)' ${new_bundles_file} ${old_bundles_file})
 
-
+#calculating bundles added
+     bundles_added=$(awk 'NR==FNR{a[$0];next}!($0 in a)' ${old_bundles_file} ${new_bundles_file})
 
 generate_release_notes() {
     calculate_diffs
