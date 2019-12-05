@@ -73,7 +73,23 @@ calculate_diffs() {
             pkgs_removed+=$(printf "\\n    %s    %s-%s" "${NO}" "${VO}" "${RO}")
         fi
     done <<< $old_package_list
-}
+}     
+
+
+#<WIP> Mauricio test changes list and collecting bundle differences between builds 
+
+#generating old bundles data
+     bundles_file=$(tar -tf ${STAGING_DIR}/releases/${DS_LATEST}/bundles-def-${DS_LATEST}.tar.gz | awk -F '/' '{print $2}' | tee "${STAGING_DIR}/releases/${DS_LATEST}/bundles-${DS_LATEST}.txt")
+     old_bundles_file=${STAGING_DIR}/releases/${DS_LATEST}/bundles-${DS_LATEST}.txt
+
+#generating new bundles data     
+     bundles_up_file=$(tar -tf ${STAGING_DIR}/releases/${MIX_VERSION}/bundles-def-${MIX_VERSION}.tar.gz | awk -F '/' '{print $2}' | tee "${STAGING_DIR}/releases/${MIX_VERSION}/bundles-${MIX_VERSION}.txt")
+     new_bundles_file=${STAGING_DIR}/releases/${MIX_VERSION}/bundles-${MIX_VERSION}.txt
+
+#calculating bundles removed 
+     bundles_removed=$(awk 'NR==FNR{a[$0];next}!($0 in a)' ${new_bundles_file} ${old_bundles_file})
+
+
 
 generate_release_notes() {
     calculate_diffs
@@ -95,6 +111,7 @@ EOL
     fi
 
     cat >> ${RELEASE_NOTES} << EOL
+
 ADDED PACKAGES:
 ${pkgs_added:-"    None"}
 
@@ -103,6 +120,16 @@ ${pkgs_removed:-"    None"}
 
 UPDATED PACKAGES:
 ${pkgs_changed:-"    None"}
+
+ADDED BUNDLES:
+${bundles_added:-"    None"}
+
+CHANGED BUNDLES:
+${changed_bundles}
+
+REMOVED BUNDLES:
+${bundles_removed:-"   None"}
+
 EOL
 }
 
@@ -114,3 +141,4 @@ log "Generating Release Notes"
 generate_release_notes
 log_line "Done!" 1
 popd > /dev/null
+

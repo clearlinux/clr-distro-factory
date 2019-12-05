@@ -2,6 +2,9 @@
 # Copyright (C) 2018 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+# IMG_SIGN_CMD: (Optional) Custom command to be used for signing image checksum files.
+# IMG_SIGN_KEY: (Optional) Private key to be used for signing image checksum files with 'openssl'.
+
 # shellcheck source=common.sh
 
 set -e
@@ -18,6 +21,20 @@ IMGS_DIR="${WORK_DIR}/release/images"
 LOG_DIR="${WORK_DIR}/logs"
 PROCS_PER_IMG=8
 TEMPLATES_PATH=${TEMPLATES_PATH:-"${PWD}/config/images"}
+
+sign_checksum() {
+    local chksum_file=$1
+
+    if [[ -n "${IMG_SIGN_CMD}" ]]; then
+        log "Signing (custom)" "${chksum_file}"
+        "${IMG_SIGN_CMD}" "${chksum_file}" "${chksum_file}.sig"
+    elif [[ -s "${IMG_SIGN_KEY}" ]]; then
+        log "Signing (openssl)" "${chksum_file}"
+        openssl dgst -sha1 -sign "${IMG_SIGN_KEY}" -out "${chksum_file}.sig" "${chksum_file}"
+    else
+        warn "Skipping signing" "Neither custom signing command nor a signing key provided."
+    fi
+}
 
 create_image() {
     # ${1} - File path to image template file
@@ -57,10 +74,14 @@ create_image() {
             log "Image '${name}'" "Failed to create compressed file."
             return 1
         fi
+        sha512sum "${final_file}.img.xz" > "${final_file}.img.xz-${CHKSUM_FILE_SUFFIX}"
+        sign_checksum "${final_file}.img.xz-${CHKSUM_FILE_SUFFIX}"
     fi
 
     if [[ -s "${name}.iso" ]]; then
         mv "${name}.iso" "${final_file}.iso"
+        sha512sum "${final_file}.iso" > "${final_file}.iso-${CHKSUM_FILE_SUFFIX}"
+        sign_checksum "${final_file}.iso-${CHKSUM_FILE_SUFFIX}"
     fi
 
     popd > /dev/null
@@ -98,6 +119,7 @@ export MIX_VERSION
 export DS_FORMAT
 export SCRIPT_DIR
 export -f create_image
+export -f sign_checksum
 export -f parallel_fn
 procs=$(nproc --all)
 max_jobs=$(( ${procs:=0} > PROCS_PER_IMG ? procs / PROCS_PER_IMG : 1 ))
