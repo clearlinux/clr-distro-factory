@@ -3,10 +3,10 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# CLR_LATEST:  Mix against a specific Upstream version instead of latest
-# CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
-# DS_BUNDLES:  Subset of bundles to be used from local (instead of all)
-# MIN_VERSION: If this build should be a min version
+# CLR_LATEST:      Mix against a specific Upstream version instead of latest
+# CLR_BUNDLES:     Subset of bundles to be used from upstream (instead of all)
+# DISTRO_BUNDLES:  Subset of bundles to be used from local (instead of all)
+# MIN_VERSION:     If this build should be a min version
 
 # shellcheck source=common.sh
 
@@ -52,7 +52,7 @@ log "Bundles Repository" "${BUNDLES_REPO}"
 log "Distribution Content/Version URL" "${DISTRO_URL}"
 log "Distribution Koji Server" "${KOJI_URL}"
 log "Distribution Koji Tag" "${KOJI_TAG}"
-log "Distribution Bundles" "${DS_BUNDLES:-"All"}"
+log "Distribution Bundles" "${DISTRO_BUNDLES:-"All"}"
 log "Upstream URL" "${CLR_PUBLIC_DL_URL}"
 log "Upstream Bundles" "${CLR_BUNDLES:-"All"}"
 log "Publishing Host" "${PUBLISHING_HOST}"
@@ -89,19 +89,19 @@ section "Versions"
 get_latest_versions
 var_save CLR_FORMAT
 var_save CLR_LATEST
-var_save DS_DOWN_VERSION
-var_save DS_FORMAT
-var_save DS_LATEST
-var_save DS_UP_FORMAT
-var_save DS_UP_VERSION
+var_save DISTRO_DOWN_VERSION
+var_save DISTRO_FORMAT
+var_save DISTRO_LATEST
+var_save DISTRO_UP_FORMAT
+var_save DISTRO_UP_VERSION
 
 log "Latest Upstream version (format)" "${CLR_LATEST} (${CLR_FORMAT})"
 log "Latest version (format)"
-if [[ -z ${DS_LATEST} ]]; then
+if [[ -z ${DISTRO_LATEST} ]]; then
     log_line "First Mix! (0)" 1
 else
-    log_line "${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})" 1
-    log "Based on Upstream Version:" "${DS_UP_VERSION} (${DS_UP_FORMAT})"
+    log_line "${DISTRO_UP_VERSION} ${DISTRO_DOWN_VERSION} (${DISTRO_FORMAT})" 1
+    log "Based on Upstream Version:" "${DISTRO_UP_VERSION} (${DISTRO_UP_FORMAT})"
 fi
 log "Mix Increment:" "${MIX_INCREMENT}"
 

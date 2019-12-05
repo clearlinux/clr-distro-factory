@@ -13,10 +13,10 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 . ./config/config.sh
 
-var_load DS_FORMAT
-var_load DS_LATEST
-var_load DS_UP_VERSION
-var_load DS_DOWN_VERSION
+var_load DISTRO_FORMAT
+var_load DISTRO_LATEST
+var_load DISTRO_UP_VERSION
+var_load DISTRO_DOWN_VERSION
 
 var_load MIX_FORMAT
 var_load MIX_VERSION
@@ -27,8 +27,8 @@ calculate_diffs() {
     local packages_path
 
     # Collecting package data for old version
-    if [[ -n ${DS_LATEST} ]]; then
-        packages_path=${STAGING_DIR}/releases/${DS_LATEST}/${PKG_LIST_FILE}-${DS_LATEST}.txt
+    if [[ -n ${DISTRO_LATEST} ]]; then
+        packages_path=${STAGING_DIR}/releases/${DISTRO_LATEST}/${PKG_LIST_FILE}-${DISTRO_LATEST}.txt
         assert_file "${packages_path}"
 
         old_package_list=$(sed -r 's/(.*)-(.*)-/\1\t\2\t/' "${packages_path}")
@@ -88,9 +88,9 @@ DISTRIBUTION VERSION:
 
 EOL
 
-    if [[ -n ${DS_LATEST} ]]; then
+    if [[ -n ${DISTRO_LATEST} ]]; then
         log "PREVIOUS VERSION" \
-            "${DS_UP_VERSION} ${DS_DOWN_VERSION} (${DS_FORMAT})" >> ${RELEASE_NOTES}
+            "${DISTRO_UP_VERSION} ${DISTRO_DOWN_VERSION} (${DISTRO_FORMAT})" >> ${RELEASE_NOTES}
         log_line >> ${RELEASE_NOTES}
     fi
 
