@@ -217,12 +217,6 @@ section "Bootstrapping Mix Workspace"
 log_line "Looking for previous releases:"
 if [[ -z "${DISTRO_LATEST}" ]]; then
     log_line "None found. This will be the first Mix!" 1
-    DISTRO_UP_FORMAT=${CLR_FORMAT}
-    # shellcheck disable=SC2034
-    DISTRO_UP_VERSION=${CLR_LATEST}
-
-    var_save DISTRO_UP_FORMAT
-    var_save DISTRO_UP_VERSION
 
     log_line "Initializing Mixer Workspace"
     mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
