@@ -32,13 +32,13 @@ get_latest_versions
 
 log "Clear Linux version" "${CLR_LATEST}"
 log "Distribution version"
-if [[ -z "${DS_LATEST}" ]]; then
+if [[ -z "${DISTRO_LATEST}" ]]; then
     log_line "First Mix! It's Build Time!" 1
     exit 1
 fi
-log_line "${DS_UP_VERSION} ${DS_DOWN_VERSION}" 1
+log_line "${DISTRO_UP_VERSION} ${DISTRO_DOWN_VERSION}" 1
 
-if (( DS_UP_VERSION < CLR_LATEST )); then
+if (( DISTRO_UP_VERSION < CLR_LATEST )); then
     log "Upstream has a new release" "It's Build Time!"
     exit 1
 fi
@@ -47,7 +47,7 @@ fi
 ret=0
 TMP_PREV_LIST=$(mktemp)
 TMP_CURR_LIST=$(mktemp)
-PKG_LIST_PATH="${STAGING_DIR}/releases/${DS_LATEST}/${PKG_LIST_FILE}-${DS_LATEST}.txt"
+PKG_LIST_PATH="${STAGING_DIR}/releases/${DISTRO_LATEST}/${PKG_LIST_FILE}-${DISTRO_LATEST}.txt"
 
 if ! cat "${PKG_LIST_PATH}" > "${TMP_PREV_LIST}"; then
     warn "Failed to fetch Distribution PREVIOUS Package List" "Assuming empty"

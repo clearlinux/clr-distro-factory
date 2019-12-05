@@ -2,8 +2,8 @@
 # Copyright (C) 2018 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-# CLR_BUNDLES: Subset of bundles to be used from upstream (instead of all)
-# DS_BUNDLES:  Subset of bundles to be used from local (instead of all)
+# CLR_BUNDLES:     Subset of bundles to be used from upstream (instead of all)
+# DISTRO_BUNDLES:  Subset of bundles to be used from local (instead of all)
 
 # shellcheck source=common.sh
 # shellcheck disable=SC2013
@@ -39,7 +39,7 @@ build_bundles() {
 
     # Add the local Bundle definitions
     # shellcheck disable=SC2086
-    mixer_cmd bundle add ${DS_BUNDLES:-"--all-local"}
+    mixer_cmd bundle add ${DISTRO_BUNDLES:-"--all-local"}
     log_line
 
     log_line "Building Bundles:"
@@ -215,14 +215,14 @@ pushd "${MIXER_DIR}" > /dev/null
 
 section "Bootstrapping Mix Workspace"
 log_line "Looking for previous releases:"
-if [[ -z "${DS_LATEST}" ]]; then
+if [[ -z "${DISTRO_LATEST}" ]]; then
     log_line "None found. This will be the first Mix!" 1
-    DS_UP_FORMAT=${CLR_FORMAT}
+    DISTRO_UP_FORMAT=${CLR_FORMAT}
     # shellcheck disable=SC2034
-    DS_UP_VERSION=${CLR_LATEST}
+    DISTRO_UP_VERSION=${CLR_LATEST}
 
-    var_save DS_UP_FORMAT
-    var_save DS_UP_VERSION
+    var_save DISTRO_UP_FORMAT
+    var_save DISTRO_UP_VERSION
 
     log_line "Initializing Mixer Workspace"
     mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
@@ -232,7 +232,7 @@ fi
 mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
 mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
-MCA_VERSIONS="${DS_LATEST}"
+MCA_VERSIONS="${DISTRO_LATEST}"
 
 section "Preparing Mix Content"
 
@@ -257,18 +257,18 @@ else
 fi
 
 section "Building"
-format_bumps=$(( CLR_FORMAT - DS_UP_FORMAT ))
+format_bumps=$(( CLR_FORMAT - DISTRO_UP_FORMAT ))
 (( format_bumps )) && info "Format Bumps will be needed"
 #TODO: Check for required mixer version for the bump here
 
 for (( bump=0 ; bump < format_bumps ; bump++ )); do
     section "Format Bump: $(( bump + 1 )) of ${format_bumps}"
 
-    ds_fmt=$(( DS_FORMAT + bump ))
-    ds_fmt_next=$(( ds_fmt + 1 ))
-    log "Distribution Format" "From: ${ds_fmt} To: ${ds_fmt_next}"
+    distro_fmt=$(( DISTRO_FORMAT + bump ))
+    distro_fmt_next=$(( distro_fmt + 1 ))
+    log "Distribution Format" "From: ${distro_fmt} To: ${distro_fmt_next}"
 
-    up_fmt=$(( DS_UP_FORMAT + bump ))
+    up_fmt=$(( DISTRO_UP_FORMAT + bump ))
     up_fmt_next=$(( up_fmt + 1 ))
     log "Upstream Format" "From: ${up_fmt} To: ${up_fmt_next}"
 
@@ -279,7 +279,7 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
         exit 2
     fi
     # Calculate the matching Distribution version
-    ds_ver_next=$(( up_ver_next * 1000 + MIX_INCREMENT * 2 ))
+    distro_ver_next=$(( up_ver_next * 1000 + MIX_INCREMENT * 2 ))
 
     # Get the Latest version for Upstream "current" Format
     up_ver=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt}/latest") || true
@@ -288,28 +288,28 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
         exit 2
     fi
     # Calculate the matching Distribution version
-    ds_ver=$(( up_ver * 1000 + MIX_INCREMENT ))
+    distro_ver=$(( up_ver * 1000 + MIX_INCREMENT ))
 
-    log "+10 Mix:" "${ds_ver} (${ds_fmt}) based on: ${up_ver} (${up_fmt})"
-    log "+20 Mix:" "${ds_ver_next} (${ds_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
-    generate_bump "${up_ver}" "${ds_ver}" "${ds_fmt}" "${up_ver_next}" "${ds_ver_next}" "${ds_fmt_next}"
+    log "+10 Mix:" "${distro_ver} (${distro_fmt}) based on: ${up_ver} (${up_fmt})"
+    log "+20 Mix:" "${distro_ver_next} (${distro_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
+    generate_bump "${up_ver}" "${distro_ver}" "${distro_fmt}" "${up_ver_next}" "${distro_ver_next}" "${distro_fmt_next}"
 
-    MCA_VERSIONS+=" ${ds_ver} ${ds_ver_next}"
+    MCA_VERSIONS+=" ${distro_ver} ${distro_ver_next}"
 done
 
-if [[ -n "${ds_fmt_next}" ]]; then
-    MIX_FORMAT=${ds_fmt_next}
+if [[ -n "${distro_fmt_next}" ]]; then
+    MIX_FORMAT=${distro_fmt_next}
     var_save MIX_FORMAT
 fi
 
-if [[ -z "${ds_ver_next}" || "${MIX_VERSION}" -gt "${ds_ver_next}" ]]; then
+if [[ -z "${distro_ver_next}" || "${MIX_VERSION}" -gt "${distro_ver_next}" ]]; then
     log_line
     log "Regular Mix:" "${MIX_VERSION} (${MIX_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
     generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${MIX_FORMAT}"
 
     MCA_VERSIONS+=" ${MIX_VERSION}"
 else
-    MIX_VERSION=${ds_ver_next}
+    MIX_VERSION=${distro_ver_next}
     # shellcheck disable=SC2034
     MIX_UP_VERSION=${MIX_VERSION: : -3}
     # shellcheck disable=SC2034

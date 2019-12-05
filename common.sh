@@ -91,25 +91,25 @@ get_upstream_version() {
 }
 
 get_distro_version() {
-    DS_LATEST=$(cat "${STAGING_DIR}/latest" 2>/dev/null) || true
-    if [[ -z "${DS_LATEST}" ]]; then
+    DISTRO_LATEST=$(cat "${STAGING_DIR}/latest" 2>/dev/null) || true
+    if [[ -z "${DISTRO_LATEST}" ]]; then
         info "Failed to fetch Distribution latest version. First Mix?"
-        DS_FORMAT="${CLR_FORMAT:-1}"
-    elif ((${#DS_LATEST} < 4)); then
+        DISTRO_FORMAT="${CLR_FORMAT:-1}"
+    elif ((${#DISTRO_LATEST} < 4)); then
         error "Distribution version number seems corrupted."
         exit 2
     else
-        DS_FORMAT=$(cat "${STAGING_DIR}/update/${DS_LATEST}/format" 2>/dev/null) || true
-        if [[ -z "${DS_FORMAT}" ]]; then
+        DISTRO_FORMAT=$(cat "${STAGING_DIR}/update/${DISTRO_LATEST}/format" 2>/dev/null) || true
+        if [[ -z "${DISTRO_FORMAT}" ]]; then
             error "Failed to fetch Distribution latest format."
             exit 2
         fi
 
-        DS_UP_VERSION="${DS_LATEST: : -3}"
-        DS_DOWN_VERSION="${DS_LATEST: -3}"
+        DISTRO_UP_VERSION="${DISTRO_LATEST: : -3}"
+        DISTRO_DOWN_VERSION="${DISTRO_LATEST: -3}"
 
-        DS_UP_FORMAT=$(curl "${CLR_PUBLIC_DL_URL}/update/${DS_UP_VERSION}/format") || true
-        if [[ -z "${DS_UP_FORMAT}" ]]; then
+        DISTRO_UP_FORMAT=$(curl "${CLR_PUBLIC_DL_URL}/update/${DISTRO_UP_VERSION}/format") || true
+        if [[ -z "${DISTRO_UP_FORMAT}" ]]; then
             error "Failed to fetch Distribution latest base format."
             exit 2
         fi
@@ -123,10 +123,10 @@ get_latest_versions() {
 
 calc_mix_version() {
     # Compute initial next version (ignoring the need for format bumps)
-    if [[ -z "${DS_LATEST}" || "${CLR_LATEST}" -gt "${DS_UP_VERSION}" ]]; then
+    if [[ -z "${DISTRO_LATEST}" || "${CLR_LATEST}" -gt "${DISTRO_UP_VERSION}" ]]; then
         MIX_VERSION=$((CLR_LATEST * 1000 + MIX_INCREMENT))
-    elif [[ "${CLR_LATEST}" -eq "${DS_UP_VERSION}" ]]; then
-        MIX_VERSION=$((DS_LATEST + MIX_INCREMENT))
+    elif [[ "${CLR_LATEST}" -eq "${DISTRO_UP_VERSION}" ]]; then
+        MIX_VERSION=$((DISTRO_LATEST + MIX_INCREMENT))
         if [[ "${MIX_VERSION: -3}" -eq 000 ]]; then
             error "Invalid Mix Version" \
                 "No more Downstream versions available for this Upstream version!"
@@ -138,7 +138,7 @@ calc_mix_version() {
         exit 1
     fi
 
-    MIX_FORMAT="${DS_FORMAT:-1}"
+    MIX_FORMAT="${DISTRO_FORMAT:-1}"
     MIX_UP_VERSION="${MIX_VERSION: : -3}"
     MIX_DOWN_VERSION="${MIX_VERSION: -3}"
 }
