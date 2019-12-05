@@ -12,11 +12,12 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load MIX_VERSION
 var_load CLR_LATEST
+
 dnf_conf="${MIXER_DIR}/.yum-mix.conf"
 
 generate_license_info() {
     awk '{print $1}' < "${MIXER_DIR}/update/image/${MIX_VERSION}/os-packages" \
-        | xargs dnf --quiet --config "${dnf_conf}" --releasever="${CLR_LATEST}" \
+        | xargs dnf --quiet --config "${dnf_conf}" --releasever="${CLR_LATEST:-"clear"}" \
         --installroot="${WORK_DIR}/dnf-cache" repoquery --queryformat "%{LICENSE}" \
         | tr ' ' '\n' \
         | sort -u
