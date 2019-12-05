@@ -75,29 +75,19 @@ calculate_diffs() {
     done <<< $old_package_list
 }     
 
+
 #<WIP> Mauricio test changes list and collecting bundle differences between builds 
-calculate_bundles_diffs() {
-    
 
-    #Collecting bundles data for old version 
-#   	  if [[ -n ${DS_LATEST} ]]; then
-    	    bundles_file=$(tar -ztvf "${STAGING_DIR}/releases/${DS_LATEST}/bundles-def-${DS_LATEST}.tar.gz" >> bundles_file.txt)
-	    old_bundles_files=$(awk '{print $6}' "${bundles_file}")
-       cat > ${old_bundles_files} > test2.txt
-}       
-#    	    assert_file "${bundles_file}"
-#
-#            old_bundle_list=$(awk '{print $NF}' "${bundles_file}")
- #   else
-#        old_bundle_list=""
-  #  fi
+#generating old bundles data
+     bundles_file=$(tar -tf ${STAGING_DIR}/releases/${DS_LATEST}/bundles-def-${DS_LATEST}.tar.gz | awk -F '/' '{print $2}' | tee "${STAGING_DIR}/releases/${DS_LATEST}/bundles-${DS_LATEST}.txt")
+     old_bundles_file=${STAGING_DIR}/releases/${DS_LATEST}/bundles-${DS_LATEST}.txt
 
-    #bundles_added=$(grep 'Added bundles:' "${WORK_DIR}/"mca-report-*)
-    #bundles_removed=$(grep 'Deleted bundles:' "${WORK_DIR}/"mca-report-*)
-    #echo ${bundle_added} > bundles_latest
+#generating new bundles data     
+     bundles_up_file=$(tar -tf ${STAGING_DIR}/releases/${MIX_VERSION}/bundles-def-${MIX_VERSION}.tar.gz | awk -F '/' '{print $2}' | tee "${STAGING_DIR}/releases/${MIX_VERSION}/bundles-${MIX_VERSION}.txt")
+     new_bundles_file=${STAGING_DIR}/releases/${MIX_VERSION}/bundles-${MIX_VERSION}.txt
 
-    #collecting bundles data for new version     
-
+#calculating bundles removed 
+     bundles_removed=$(awk 'NR==FNR{a[$0];next}!($0 in a)' ${new_bundles_file} ${old_bundles_file})
 
 
 
@@ -131,14 +121,15 @@ ${pkgs_removed:-"    None"}
 UPDATED PACKAGES:
 ${pkgs_changed:-"    None"}
 
-#ADDED BUNDLES:
-${bundles_added}
+ADDED BUNDLES:
+${bundles_added:-"    None"}
 
 CHANGED BUNDLES:
 ${changed_bundles}
 
-DELETED BUNDLES:
-${bundles_removed}
+REMOVED BUNDLES:
+${bundles_removed:-"   None"}
+
 EOL
 }
 
@@ -150,3 +141,4 @@ log "Generating Release Notes"
 generate_release_notes
 log_line "Done!" 1
 popd > /dev/null
+
