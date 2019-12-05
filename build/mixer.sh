@@ -183,20 +183,26 @@ generate_bump() {
 }
 
 generate_mix() {
-    if (( $# != 3 )); then
-        error "'generate_mix' (regular build) requires 3 arguments!"
+    if (( $# < 2 )); then
+        error "'generate_mix' (regular build) requires at least 2 arguments!"
         return 1
     fi
 
-    local clear_ver="$1"
-    local mix_ver="$2"
-    local mix_format="$3"
+    local mix_ver="$1"
+    local mix_format="$2"
+    local clear_ver="$3"
 
     # Set the Mix Format
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer_cmd versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
+    local mixer_opts="--skip-format-check --mix-version ${mix_ver}"
+    if "${IS_DOWNSTREAM}"; then
+        mixer_opts+=" --clear-version ${clear_ver}"
+    fi
+
+    # shellcheck disable=SC2086
+    mixer_cmd versions update ${mixer_opts}
 
     build_bundles
 
@@ -312,7 +318,7 @@ fi
 if [[ -z "${distro_ver_next}" || "${MIX_VERSION}" -gt "${distro_ver_next}" ]]; then
     log_line
     log "Regular Mix:" "${MIX_VERSION} (${MIX_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
-    generate_mix "${CLR_LATEST}" "${MIX_VERSION}" "${MIX_FORMAT}"
+    generate_mix "${MIX_VERSION}" "${MIX_FORMAT}" "${CLR_LATEST}"
 
     MCA_VERSIONS+=" ${MIX_VERSION}"
 else
