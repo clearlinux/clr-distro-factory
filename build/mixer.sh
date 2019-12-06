@@ -231,6 +231,11 @@ else
     sed -i -E -e "s/(PREVIOUS_MIX_VERSION = )(.*)/\\1\"${DISTRO_LATEST}\"/" mixer.state
 fi
 
+if ! "${IS_DOWNSTREAM}"; then
+    log_line "Making sure 'clear' repo does not exists:"
+    mixer_cmd repo remove "clear"
+fi
+
 mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
 mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
