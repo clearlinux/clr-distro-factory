@@ -132,6 +132,15 @@ else
     log_line "No!" 1
 fi
 
+if ! ${IS_DOWNSTREAM}; then
+    log "Should this build be a Format Bump?"
+    if ${FORMAT_BUMP}; then
+        log_line "Yes!" 1
+    else
+        log_line "No!" 1
+    fi
+fi
+
 assert_dep mixer
 assert_dep clr-installer
 assert_dep swupd
