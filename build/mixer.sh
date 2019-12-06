@@ -219,7 +219,12 @@ if [[ -z "${DISTRO_LATEST}" ]]; then
     log_line "None found. This will be the first Mix!" 1
 
     log_line "Initializing Mixer Workspace"
-    mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
+    if "${IS_DOWNSTREAM}"; then
+        mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
+    else
+        #note: --offline is already set
+        mixer_cmd init --upstream-url "${DISTRO_URL}" --upstream-version "${MIX_VERSION}"
+    fi
     log_line ""
 else
     echo "${DISTRO_LATEST}" > mixversion
