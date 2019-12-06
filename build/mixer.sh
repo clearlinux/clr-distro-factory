@@ -225,6 +225,72 @@ generate_mix() {
     echo -n "${mix_ver}" | sudo -E tee update/latest > /dev/null
 }
 
+downstream_build() {
+    format_bumps=$(( CLR_FORMAT - DISTRO_UP_FORMAT ))
+
+    for (( bump=0 ; bump < format_bumps ; bump++ )); do
+        section "Format Bump: $(( bump + 1 )) of ${format_bumps}"
+
+        distro_fmt=$(( DISTRO_FORMAT + bump ))
+        distro_fmt_next=$(( distro_fmt + 1 ))
+        log "Distribution Format" "From: ${distro_fmt} To: ${distro_fmt_next}"
+
+        up_fmt=$(( DISTRO_UP_FORMAT + bump ))
+        up_fmt_next=$(( up_fmt + 1 ))
+        log "Upstream Format" "From: ${up_fmt} To: ${up_fmt_next}"
+
+        # Get the First version for Upstream Next Format
+        up_ver_next=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt_next}/first") || true
+        if [[ -z ${up_ver_next} ]]; then
+            error "Failed to get First version for Upstream Format: ${up_fmt_next}!"
+            exit 2
+        fi
+        # Calculate the matching Distribution version
+        distro_ver_next=$(( up_ver_next * 1000 + MIX_INCREMENT * 2 ))
+
+        # Get the Latest version for Upstream "current" Format
+        up_ver=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt}/latest") || true
+        if [[ -z ${up_ver} ]]; then
+            error "Failed to get Latest version for Upstream Format: ${up_fmt}."
+            exit 2
+        fi
+        # Calculate the matching Distribution version
+        distro_ver=$(( up_ver * 1000 + MIX_INCREMENT ))
+
+        log "+10 Mix:" "${distro_ver} (${distro_fmt}) based on: ${up_ver} (${up_fmt})"
+        log "+20 Mix:" "${distro_ver_next} (${distro_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
+        generate_bump "${distro_ver}" "${distro_fmt}" "${distro_ver_next}" "${distro_fmt_next}" "${up_ver}" "${up_ver_next}"
+
+        MCA_VERSIONS+=" ${distro_ver} ${distro_ver_next}"
+    done
+
+    if [[ -n "${distro_fmt_next}" ]]; then
+        MIX_FORMAT=${distro_fmt_next}
+        var_save MIX_FORMAT
+    fi
+
+    if [[ -z "${distro_ver_next}" || "${MIX_VERSION}" -gt "${distro_ver_next}" ]]; then
+        # In this case, final MIX_VERSION estimate is correct and a final mix is needed
+        log_line
+        log "Regular Mix" "${MIX_VERSION} (${MIX_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
+        generate_mix "${MIX_VERSION}" "${MIX_FORMAT}" "${CLR_LATEST}"
+
+        MCA_VERSIONS+=" ${MIX_VERSION}"
+    else
+        # If a format bump was performed and a catch-up mix was not needed,
+        # then initial estimate needs to be fixed.
+        MIX_VERSION=${distro_ver_next}
+        # shellcheck disable=SC2034
+        MIX_UP_VERSION=${MIX_VERSION: : -3}
+        # shellcheck disable=SC2034
+        MIX_DOWN_VERSION=${MIX_VERSION: -3}
+
+        var_save MIX_VERSION
+        var_save MIX_UP_VERSION
+        var_save MIX_DOWN_VERSION
+    fi
+}
+
 # ==============================================================================
 # MAIN
 # ==============================================================================
@@ -279,69 +345,11 @@ else
 fi
 
 section "Building"
-format_bumps=$(( CLR_FORMAT - DISTRO_UP_FORMAT ))
-(( format_bumps )) && info "Format Bumps will be needed"
-#TODO: Check for required mixer version for the bump here
-
-for (( bump=0 ; bump < format_bumps ; bump++ )); do
-    section "Format Bump: $(( bump + 1 )) of ${format_bumps}"
-
-    distro_fmt=$(( DISTRO_FORMAT + bump ))
-    distro_fmt_next=$(( distro_fmt + 1 ))
-    log "Distribution Format" "From: ${distro_fmt} To: ${distro_fmt_next}"
-
-    up_fmt=$(( DISTRO_UP_FORMAT + bump ))
-    up_fmt_next=$(( up_fmt + 1 ))
-    log "Upstream Format" "From: ${up_fmt} To: ${up_fmt_next}"
-
-    # Get the First version for Upstream Next Format
-    up_ver_next=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt_next}/first") || true
-    if [[ -z ${up_ver_next} ]]; then
-        error "Failed to get First version for Upstream Format: ${up_fmt_next}!"
-        exit 2
-    fi
-    # Calculate the matching Distribution version
-    distro_ver_next=$(( up_ver_next * 1000 + MIX_INCREMENT * 2 ))
-
-    # Get the Latest version for Upstream "current" Format
-    up_ver=$(curl "${CLR_PUBLIC_DL_URL}/update/version/format${up_fmt}/latest") || true
-    if [[ -z ${up_ver} ]]; then
-        error "Failed to get Latest version for Upstream Format: ${up_fmt}."
-        exit 2
-    fi
-    # Calculate the matching Distribution version
-    distro_ver=$(( up_ver * 1000 + MIX_INCREMENT ))
-
-    log "+10 Mix:" "${distro_ver} (${distro_fmt}) based on: ${up_ver} (${up_fmt})"
-    log "+20 Mix:" "${distro_ver_next} (${distro_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
-    generate_bump "${distro_ver}" "${distro_fmt}" "${distro_ver_next}" "${distro_fmt_next}" "${up_ver}" "${up_ver_next}"
-
-    MCA_VERSIONS+=" ${distro_ver} ${distro_ver_next}"
-done
-
-if [[ -n "${distro_fmt_next}" ]]; then
-    MIX_FORMAT=${distro_fmt_next}
-    var_save MIX_FORMAT
-fi
-
-if [[ -z "${distro_ver_next}" || "${MIX_VERSION}" -gt "${distro_ver_next}" ]]; then
-    log_line
-    log "Regular Mix:" "${MIX_VERSION} (${MIX_FORMAT}) based on: ${CLR_LATEST} (${CLR_FORMAT})"
-    generate_mix "${MIX_VERSION}" "${MIX_FORMAT}" "${CLR_LATEST}"
-
-    MCA_VERSIONS+=" ${MIX_VERSION}"
+if "${IS_DOWNSTREAM}"; then
+    downstream_build
 else
-    MIX_VERSION=${distro_ver_next}
-    # shellcheck disable=SC2034
-    MIX_UP_VERSION=${MIX_VERSION: : -3}
-    # shellcheck disable=SC2034
-    MIX_DOWN_VERSION=${MIX_VERSION: -3}
-
-    var_save MIX_VERSION
-    var_save MIX_UP_VERSION
-    var_save MIX_DOWN_VERSION
+    exit 1
 fi
 
 var_save MCA_VERSIONS
-
 popd > /dev/null
