@@ -228,6 +228,11 @@ if [[ -z "${DISTRO_LATEST}" ]]; then
     log_line ""
 fi
 
+if ! "${IS_DOWNSTREAM}"; then
+    log_line "Making sure 'clear' repo does not exits:"
+    mixer_cmd repo remove "clear"
+fi
+
 mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
 mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
 
