@@ -105,17 +105,17 @@ build_deltas() {
 }
 
 generate_bump() {
-    if (($# != 6 )); then
-        error "'generate_format_bump' requires 6 arguments!"
+    if (( $# < 4 )); then
+        error "'generate_format_bump' requires at least 4 arguments!"
         return 1
     fi
 
-    local clear_ver="$1"
-    local mix_ver="$2"
-    local mix_format="$3"
-    local clear_ver_next="$4"
-    local mix_ver_next="$5"
-    local mix_format_next="$6"
+    local mix_ver="$1"
+    local mix_format="$2"
+    local mix_ver_next="$3"
+    local mix_format_next="$4"
+    local clear_ver="$5"
+    local clear_ver_next="$6"
 
     # Ghost Build (+10)
     # Set the Mix Format
@@ -123,7 +123,13 @@ generate_bump() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer_cmd versions update --clear-version "${clear_ver}" --mix-version "${mix_ver}" --skip-format-check
+    local mixer_opts="--skip-format-check --mix-version ${mix_ver}"
+    if "${IS_DOWNSTREAM}"; then
+        mixer_opts+=" --clear-version ${clear_ver}"
+    fi
+
+    # shellcheck disable=SC2086
+    mixer_cmd versions update ${mixer_opts}
 
     build_bundles
 
@@ -161,7 +167,13 @@ generate_bump() {
     sed -i -E -e "s/(FORMAT = )(.*)/\\1\"${mix_format_next}\"/" mixer.state
 
     # Set Upstream and Mix versions
-    mixer_cmd versions update --clear-version "${clear_ver_next}" --mix-version "${mix_ver_next}" --offline --skip-format-check
+    mixer_opts="--offline --skip-format-check --mix-version ${mix_ver_next}"
+    if "${IS_DOWNSTREAM}"; then
+        mixer_opts+=" --clear-version ${clear_ver_next}"
+    fi
+
+    # shellcheck disable=SC2086
+    mixer_cmd versions update ${mixer_opts}
 
     # Remove bundles pending deletion again
     section "Bundle Deletion"
@@ -305,7 +317,7 @@ for (( bump=0 ; bump < format_bumps ; bump++ )); do
 
     log "+10 Mix:" "${distro_ver} (${distro_fmt}) based on: ${up_ver} (${up_fmt})"
     log "+20 Mix:" "${distro_ver_next} (${distro_fmt_next}) based on: ${up_ver_next} (${up_fmt_next})"
-    generate_bump "${up_ver}" "${distro_ver}" "${distro_fmt}" "${up_ver_next}" "${distro_ver_next}" "${distro_fmt_next}"
+    generate_bump "${distro_ver}" "${distro_fmt}" "${distro_ver_next}" "${distro_fmt_next}" "${up_ver}" "${up_ver_next}"
 
     MCA_VERSIONS+=" ${distro_ver} ${distro_ver_next}"
 done
