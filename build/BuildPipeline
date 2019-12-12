@@ -37,11 +37,6 @@ pipeline {
                 sh 'build/stage.sh'
             }
         }
-        stage('Publish') {
-            steps {
-                sh 'build/publish.sh'
-            }
-        }
     }
 
     post {
