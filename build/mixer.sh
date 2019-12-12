@@ -227,6 +227,9 @@ if [[ -z "${DS_LATEST}" ]]; then
     log_line "Initializing Mixer Workspace"
     mixer_cmd init --upstream-url "${CLR_PUBLIC_DL_URL}" --upstream-version "${CLR_LATEST}"
     log_line ""
+else
+    echo "${DS_LATEST}" > mixversion
+    sed -i -E -e "s/(PREVIOUS_MIX_VERSION = )(.*)/\\1\"${DS_LATEST}\"/" mixer.state
 fi
 
 mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
