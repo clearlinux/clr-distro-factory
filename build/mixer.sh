@@ -18,6 +18,9 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load_all
 
+CONTENT_URL=${CONTENT_URL:-"${DISTRO_URL}/update"}
+VERSION_URL=${VERSION_URL:-"${DISTRO_URL}/update"}
+
 if ! "${IS_DOWNSTREAM}" && [[ ${MIXER_OPTS} != *"--offline"* ]]; then
     log "'IS_DOWNSTREAM' flag is not set" "Setting '--offline' flag to mixer"
     MIXER_OPTS="${MIXER_OPTS} --offline"
@@ -342,8 +345,8 @@ if ! "${IS_DOWNSTREAM}"; then
     mixer_cmd repo remove "clear" || true
 fi
 
-mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
-mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
+mixer_cmd config set Swupd.CONTENTURL "${CONTENT_URL}"
+mixer_cmd config set Swupd.VERSIONURL "${VERSION_URL}"
 
 MCA_VERSIONS="${DISTRO_LATEST}"
 
