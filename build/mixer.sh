@@ -27,6 +27,8 @@ if ! "${IS_DOWNSTREAM}" && [[ ${MIXER_OPTS} != *"--offline"* ]]; then
 fi
 
 build_bundles() {
+    local mix_ver="$1"
+
     section "Bundles"
     log_line "Updating Bundles List:"
     # Clean bundles file, otherwise mixer will use the outdated list
@@ -55,6 +57,19 @@ build_bundles() {
     # shellcheck disable=SC2086
     sudo_mixer_cmd build bundles ${mixer_opts_bundles}
     log_line
+
+    if function_exists sign_update; then
+        log_line "Injecting Swupd_Root.pem into full chroot"
+        local chroot_cert_file="/usr/share/clear/update-ca/Swupd_Root.pem"
+        local chroot_cert_dir="$(dirname "${chroot_cert_file}")"
+        local mix_ver_chroot_dir="update/image/${mix_ver}/full"
+        sudo mkdir -p "${mix_ver_chroot_dir}${chroot_cert_dir}"
+        sudo cp -f Swupd_Root.pem "${mix_ver_chroot_dir}${chroot_cert_file}"
+        echo "${chroot_cert_dir}" > update/os-core-update-extra-files
+        echo "${chroot_cert_file}" >> update/os-core-update-extra-files
+    else
+        rm -f update/os-core-update-extra-files
+    fi
 }
 
 build_update() {
@@ -142,7 +157,7 @@ generate_bump() {
     # shellcheck disable=SC2086
     mixer_cmd versions update ${mixer_opts}
 
-    build_bundles
+    build_bundles "${mix_ver}"
 
     # Remove bundles pending deletion
     section "Bundle Deletion"
@@ -227,7 +242,7 @@ generate_mix() {
     # shellcheck disable=SC2086
     mixer_cmd versions update ${mixer_opts}
 
-    build_bundles
+    build_bundles "${mix_ver}"
 
     build_update "${mix_ver}"
 
