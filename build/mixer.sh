@@ -22,6 +22,8 @@ if ! "${IS_DOWNSTREAM}" && [[ ${MIXER_OPTS} != *"--offline"* ]]; then
     log "'IS_DOWNSTREAM' flag is not set" "Setting '--offline' flag to mixer"
     MIXER_OPTS="${MIXER_OPTS} --offline"
 fi
+CONTENT_URL=${CONTENT_URL:-"${DISTRO_URL}/update"}
+VERSION_URL=${VERSION_URL:-"${DISTRO_URL}/update"}
 
 build_bundles() {
     section "Bundles"
@@ -342,8 +344,8 @@ if ! "${IS_DOWNSTREAM}"; then
     mixer_cmd repo remove "clear"
 fi
 
-mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
-mixer_cmd config set Swupd.VERSIONURL "${DISTRO_URL}/update"
+mixer_cmd config set Swupd.CONTENTURL "${CONTENT_URL}"
+mixer_cmd config set Swupd.VERSIONURL "${VERSION_URL}"
 
 MCA_VERSIONS="${DISTRO_LATEST}"
 
