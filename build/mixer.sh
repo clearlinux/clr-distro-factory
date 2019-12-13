@@ -153,16 +153,16 @@ generate_bump() {
     for i in $(grep -lir "\\[STATUS\\]: Pending-Delete" ${bundle_folders}); do
         b=$(basename "$i")
         log "Deleting" "${b}"
-        sudo -E rm -f "update/image/${mix_ver}/${b}-info"
-        sudo -E mkdir -p "update/image/${mix_ver}/${b}"
+        sudo rm -f "update/image/${mix_ver}/${b}-info"
+        sudo mkdir -p "update/image/${mix_ver}/${b}"
     done # TODO
 
     # Fake version and format
-    sudo -E sed -i -E -e "s/(VERSION_ID=)(.*)/\\1\"${mix_ver_next}\"/" \
+    sudo sed -i -E -e "s/(VERSION_ID=)(.*)/\\1\"${mix_ver_next}\"/" \
         "${MIXER_DIR}/update/image/${mix_ver}/full/usr/lib/os-release"
-    echo -n "${mix_ver_next}" | sudo -E \
+    echo -n "${mix_ver_next}" | sudo \
         tee "${MIXER_DIR}/update/image/${mix_ver}/full/usr/share/clear/version" > /dev/null
-    echo -n "${mix_format_next}" | sudo -E \
+    echo -n "${mix_format_next}" | sudo \
         tee "${MIXER_DIR}/update/image/${mix_ver}/full/usr/share/defaults/swupd/format" > /dev/null
 
     build_update "${mix_ver}"
@@ -189,17 +189,17 @@ generate_bump() {
         b=$(basename "$i")
         log "Deleting" "${b}"
         mixer_cmd bundle remove "${b}"
-        sudo -E sed -i -E -e "/\\[${b}\\]/d;/group=${b}/d" "${MIXER_DIR}/update/groups.ini"
+        sudo sed -i -E -e "/\\[${b}\\]/d;/group=${b}/d" "${MIXER_DIR}/update/groups.ini"
     done #TODO: Maybe also delete from bundles repository?
 
     # "build bundles"
     section "Fake Build Bundles"
-    sudo -E cp -al "${MIXER_DIR}/update/image/${mix_ver}" "${MIXER_DIR}/update/image/${mix_ver_next}"
+    sudo cp -al "${MIXER_DIR}/update/image/${mix_ver}" "${MIXER_DIR}/update/image/${mix_ver_next}"
 
     MIN_VERSION=true build_update "${mix_ver_next}"
 
-    echo -n "${mix_ver_next}" | sudo -E tee update/latest > /dev/null
-    echo -n "${mix_ver_next}" | sudo -E tee "update/www/version/format${mix_format_next}/first" > /dev/null
+    echo -n "${mix_ver_next}" | sudo tee update/latest > /dev/null
+    echo -n "${mix_ver_next}" | sudo tee "update/www/version/format${mix_format_next}/first" > /dev/null
 }
 
 generate_mix() {
@@ -230,7 +230,7 @@ generate_mix() {
 
     build_deltas "${mix_format}"
 
-    echo -n "${mix_ver}" | sudo -E tee update/latest > /dev/null
+    echo -n "${mix_ver}" | sudo tee update/latest > /dev/null
 }
 
 downstream_build() {
