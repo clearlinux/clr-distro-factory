@@ -89,16 +89,24 @@ build_deltas() {
     if [[ -s "${first_file}" ]]; then
         local first_version="$(< "${first_file}")"
         log "Building deltas from the first build ${first_version} in format ${mix_format}..."
-        sudo_mixer_cmd build delta-packs --from "${first_version}"
-        sudo_mixer_cmd build delta-manifests --from "${first_version}"
+        if ! sudo_mixer_cmd build delta-packs --from "${first_version}"; then
+            warn "First file found. But delta-packs failed to be created."
+        fi
+        if ! sudo_mixer_cmd build delta-manifests --from "${first_version}"; then
+            warn "First file found. But delta-manifest failed to be created."
+        fi
     else
         log "Skipping delta creation from the first build ${first_version} in format ${mix_format}" "'first' file not found for format ${mix_format}"
     fi
 
     if (( NUM_DELTA_BUILDS > 0 )); then
         log "Building deltas for the previous ${NUM_DELTA_BUILDS} builds..."
-        sudo_mixer_cmd build delta-packs --previous-versions "${NUM_DELTA_BUILDS}"
-        sudo_mixer_cmd build delta-manifests --previous-versions "${NUM_DELTA_BUILDS}"
+        if ! sudo_mixer_cmd build delta-packs --previous-versions "${NUM_DELTA_BUILDS}"; then
+            warn "Previous builds found. But delta-packs failed to be created."
+        fi
+        if ! sudo_mixer_cmd build delta-manifests --previous-versions "${NUM_DELTA_BUILDS}"; then
+            warn "Previous builds found. But delta-manifests failed to be created."
+        fi
     else
         log "Skipping delta creation for the previous ${NUM_DELTA_BUILDS} builds" "'NUM_DELTA_BUILDS' <= 0"
     fi
