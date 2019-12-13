@@ -69,7 +69,7 @@ popd > /dev/null
 log_line "OK!" 1
 
 log_line "Fixing permissions and ownership"
-sudo -E /usr/bin/chown -R "${USER}:httpd" "${STAGING_DIR}"
+sudo /usr/bin/chown -R "${USER}:httpd" "${STAGING_DIR}"
 log_line "OK!" 1
 
 section "Tagging Repositories"
