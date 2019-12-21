@@ -1,5 +1,3 @@
-[![Build Status (Travis)](https://api.travis-ci.org/clearlinux/clr-distro-factory.svg?branch=master)](https://travis-ci.org/clearlinux/clr-distro-factory)
-
 # Clear Linux* Distro Factory
 'DevOps' tools for maintaining a 'swupd-based' distribution.
 

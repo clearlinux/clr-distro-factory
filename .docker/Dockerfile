@@ -6,11 +6,11 @@ RUN swupd clean --all --quiet
 
 ARG UID=1000
 
-RUN useradd -G wheelnopw --uid ${UID} -U -m travis
+RUN useradd -G wheelnopw --uid ${UID} -U -m action
 
-USER travis
+USER action
 
-RUN git config --global user.email "travis@ci-container.com"
-RUN git config --global user.name "Travis"
+RUN git config --global user.email "action@ci-container.com"
+RUN git config --global user.name "Action"
 
 WORKDIR /mnt

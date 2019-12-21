@@ -9,5 +9,17 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - name: kernel
+      run: uname -a
+    - name: current dir
+      run: pwd
+    - name: network interfaces
+      run: ip a
+    - name: partitions status
+      run: df -h
     - name: make check
       run: make check
+    - name: make build
+      run: |
+        docker build --quiet --build-arg UID=$(id -u) --network host --force-rm -t clr-builder .docker
+        docker run --rm -v $(pwd):/mnt clr-builder make build
