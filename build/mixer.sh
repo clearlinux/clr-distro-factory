@@ -339,7 +339,7 @@ fi
 
 if ! "${IS_DOWNSTREAM}"; then
     log_line "Making sure 'clear' repo does not exists:"
-    mixer_cmd repo remove "clear"
+    mixer_cmd repo remove "clear" || true
 fi
 
 mixer_cmd config set Swupd.CONTENTURL "${DISTRO_URL}/update"
