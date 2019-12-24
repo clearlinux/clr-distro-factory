@@ -1,0 +1,43 @@
+name: Continuous Integration
+
+on: [push, pull_request]
+
+jobs:
+  environment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Kernel Info
+      run: uname -a
+    - name: Current Dir
+      run: pwd
+    - name: Network Interfaces
+      run: ip a
+    - name: Partitions Status
+      run: df -h
+    - name: Memory
+      run: free -h
+    - name: User Info
+      run: |
+        whoami
+        id -u
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: make check
+      run: make check
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build Docker Image
+      run:
+        docker build --quiet --build-arg UID=$(id -u) --network host --force-rm -t clr-builder .github/docker
+    - name: Downstream - First Build
+      run:
+        docker run --rm -v $(pwd):/mnt clr-builder make build
+    - name: Downstream - Second Build
+      run:
+        docker run --rm -v $(pwd):/mnt clr-builder make build
