@@ -1,3 +1,5 @@
+![](https://github.com/clearlinux/clr-distro-factory/workflows/Continuous%20Integration/badge.svg)
+
 # Clear Linux* Distro Factory
 'DevOps' tools for maintaining a 'swupd-based' distribution.
 
