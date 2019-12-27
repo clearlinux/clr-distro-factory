@@ -36,7 +36,7 @@ fi
 pushd "${MIXER_DIR}" > /dev/null
 prev_ver="${mca_versions[0]}"
 for ver in "${mca_versions[@]:1}"; do
-    args="--from ${prev_ver} --to ${ver}"
+    args="--from ${prev_ver} --to ${ver} --table-width ${MCA_TABLE_WIDTH}"
     mca_log="${WORK_DIR}/${MCA_FILE}-${prev_ver}-${ver}.txt"
 
     # The custom content repo for the initial previous version is

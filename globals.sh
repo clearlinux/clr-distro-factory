@@ -28,6 +28,8 @@ MIXER_OPTS=${MIXER_OPTS:-""}
 NUM_DELTA_BUILDS=${NUM_DELTA_BUILDS:-10}
 # Supported Mixer Version
 MIXER_MAJOR_VER=${MIXER_MAJOR_VER:-6}
+# Width of MCA statistics table
+MCA_TABLE_WIDTH=${MCA_TABLE_WIDTH:-120}
 
 # Workspace
 BUNDLES_DIR=${BUNDLES_DIR:-"${WORK_DIR}/bundles"}
