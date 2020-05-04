@@ -18,6 +18,7 @@ SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 
 var_load_all
 
+MIXER_LOG=${MIXER_LOG:-"mixer-tools.log"}
 CONTENT_URL=${CONTENT_URL:-"${DISTRO_URL}/update"}
 VERSION_URL=${VERSION_URL:-"${DISTRO_URL}/update"}
 
@@ -360,6 +361,7 @@ if ! "${IS_DOWNSTREAM}"; then
     mixer_cmd repo remove "clear" || true
 fi
 
+mixer_cmd config set Mixer.LOG "${MIXER_LOG}"
 mixer_cmd config set Swupd.CONTENTURL "${CONTENT_URL}"
 mixer_cmd config set Swupd.VERSIONURL "${VERSION_URL}"
 
