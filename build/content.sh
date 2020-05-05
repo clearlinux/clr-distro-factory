@@ -26,7 +26,6 @@ log_line "OK!" 1
 section "Creating Content Repository"
 if [[ -z "$(ls -A "${PKGS_DIR}")" ]]; then
     info "Custom Content Not Found" " '${PKGS_DIR}' is empty."
-    exit 0
 fi
 
 log_line # Output too verbose
