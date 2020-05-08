@@ -162,9 +162,10 @@ Swupd Version:
 
 EOL
 
-mixer_major_ver=$(mixer --version | sed -E -e 's/.*([0-9]+).[0-9]+.[0-9]+$/\1/')
-if (( mixer_major_ver < MIXER_MAJOR_VER )); then
-    error "Unsupported Mixer Version" "Mixer major version needs to be ${MIXER_MAJOR_VER} or greater"
+mixer_ver_abs=$(mixer --version | sed -E -e 's/([A-Z][a-z]+ )([0-9]+)(.)([0-9]+)(.)([0-9]+)/\2\4\6/')
+mixer_ver_min_abs=$(echo "${MIXER_VER_MIN}" | sed -E -e 's/([0-9]+)(.)([0-9]+)(.)([0-9]+)/\1\3\5/')
+if (( mixer_ver_abs < mixer_ver_min_abs )); then
+    error "Unsupported Mixer Version" "Mixer version needs to be ${MIXER_VER_MIN} or greater"
     error "Aborting build to avoid corrupting your mixer workspace"
     exit 1
 fi

@@ -26,8 +26,9 @@ MIX_INCREMENT=${MIX_INCREMENT:-10}
 MIXER_OPTS=${MIXER_OPTS:-""}
 # Number of builds from the current build to generate deltas
 NUM_DELTA_BUILDS=${NUM_DELTA_BUILDS:-10}
-# Supported Mixer Version
-MIXER_MAJOR_VER=${MIXER_MAJOR_VER:-6}
+# Minimum version of mixer that is supported
+MIXER_VER_MIN=${MIXER_VER_MIN:-6.2.3}
+
 # Width of MCA statistics table
 MCA_TABLE_WIDTH=${MCA_TABLE_WIDTH:-120}
 
