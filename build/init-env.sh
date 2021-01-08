@@ -31,8 +31,6 @@ mkdir -p "${WORK_DIR}"/release/{config,images}
 mkdir -p "${PKGS_DIR}"
 
 mkdir -p "${MIXER_DIR}"
-rm -rf "${MIXER_DIR}/local-yum"
-mkdir -p "${MIXER_DIR}/local-yum"
 
 mkdir -p "${STAGING_DIR}"
 log_line "OK!" 1
